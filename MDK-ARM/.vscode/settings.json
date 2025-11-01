@@ -4,6 +4,15 @@
     "piddata.h": "c",
     "stdio.h": "c",
     "pid.h": "c",
-    "bsp_can.h": "c"
+    "bsp_can.h": "c",
+    "motor_common.h": "c",
+    "queue": "c",
+    "random": "c",
+    "main.h": "c",
+    "memory.h": "c",
+    "__functional_03": "c",
+    "functional": "c",
+    "chrono": "c",
+    "dji_motor.h": "c"
   }
 }

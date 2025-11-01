@@ -1,3 +1,11 @@
+/*
+ * @Author: Jiang Tianhang 1919524828@qq.com
+ * @Date: 2025-10-26 16:48:17
+ * @LastEditors: Jiang Tianhang 1919524828@qq.com
+ * @LastEditTime: 2025-10-29 23:24:00
+ * @FilePath: \MDK-ARMd:\RoboMaster\code\NE_RTOS_TEST\Components\bsp\bsp_can.c
+ * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
+ */
 #include "bsp_can.h"
 #include "main.h"
 #include <string.h>
@@ -6,7 +14,7 @@
 /* can instance ptrs storage, used for recv callback */
 // 在CAN产生接收中断会遍历数组,选出hcan和rxid与发生中断的实例相同的那个,调用其回调函数
 // @todo: 后续为每个CAN总线单独添加一个can_instance指针数组,提高回调查找的性能
-static BSP_CAN_RxInstance *g_can_rx_instances[BSP_CAN_MAX_REGISTER_CNT] = {NULL};
+static BSP_CAN_RxInstance *gp_can_rx_instances[BSP_CAN_MAX_REGISTER_CNT] = {NULL};
 static uint8_t g_can_rx_instance_idx; // 全局CAN实例索引,每次有新的模块注册会自增
 
 
@@ -22,14 +30,14 @@ static void _BSP_CAN_AddFilter(BSP_CAN_RxInstance *rx_instance)
   can_filter_conf.FilterFIFOAssignment = (rx_instance->rx_id & 1) ? CAN_RX_FIFO0 : CAN_RX_FIFO1;              // 奇数id的模块会被分配到FIFO0,偶数id的模块会被分配到FIFO1
   can_filter_conf.SlaveStartFilterBank = 14;                                                                // 从第14个过滤器开始配置从机过滤器(在STM32的BxCAN控制器中CAN2是CAN1的从机)
   can_filter_conf.FilterIdLow = rx_instance->rx_id << 5;                                                      // 过滤器寄存器的低16位,因为使用STDID,所以只有低11位有效,高5位要填0
-  can_filter_conf.FilterBank = rx_instance->can_handle == &hcan1 ? (can1_filter_idx++) : (can2_filter_idx++); // 根据can_handle判断是CAN1还是CAN2,然后自增
+  can_filter_conf.FilterBank = rx_instance->p_can_handle == &hcan1 ? (can1_filter_idx++) : (can2_filter_idx++); // 根据can_handle判断是CAN1还是CAN2,然后自增
   can_filter_conf.FilterActivation = CAN_FILTER_ENABLE;                                                     // 启用过滤器
 
-  HAL_CAN_ConfigFilter(rx_instance->can_handle, &can_filter_conf);
+  HAL_CAN_ConfigFilter(rx_instance->p_can_handle, &can_filter_conf);
 }
 
 /// @brief 
-void BSP_CAN_InitAll()
+void BSP_CAN_InitAll(void)
 {
   HAL_CAN_Start(&hcan1);
   HAL_CAN_ActivateNotification(&hcan1, CAN_IT_RX_FIFO0_MSG_PENDING);
@@ -42,7 +50,7 @@ void BSP_CAN_InitAll()
 
 void BSP_CAN_RxRegister(BSP_CAN_RxInstance *g_can_rx_instance, CAN_HandleTypeDef *const hcan,
                         const uint32_t rx_id, void *const owner_moudle,
-                        void (*can_rx_callback)(struct _RxInstance *))
+                        void (*pCanRxCallback)(struct _RxInstance *))
 { // 超过最大负载，卡死
   if (g_can_rx_instance_idx >= BSP_CAN_MAX_REGISTER_CNT)
   {
@@ -52,7 +60,7 @@ void BSP_CAN_RxRegister(BSP_CAN_RxInstance *g_can_rx_instance, CAN_HandleTypeDef
   }
   for (size_t i = 0; i < g_can_rx_instance_idx; i++)
   {
-    if (g_can_rx_instances[i]->rx_id == rx_id && g_can_rx_instances[i]->can_handle == hcan)
+    if (gp_can_rx_instances[i]->rx_id == rx_id && gp_can_rx_instances[i]->p_can_handle == hcan)
     {
       while (1)
       {
@@ -61,21 +69,21 @@ void BSP_CAN_RxRegister(BSP_CAN_RxInstance *g_can_rx_instance, CAN_HandleTypeDef
   }
 
   // 设置回调函数和接收发送id
-  g_can_rx_instance->can_handle = hcan;
+  g_can_rx_instance->p_can_handle = hcan;
   // instance->tx_id = config->tx_id; // 好像没用,可以删掉
   g_can_rx_instance->rx_id = rx_id;
-  g_can_rx_instance->can_rx_callback = can_rx_callback;
-  g_can_rx_instance->owner_moudle = owner_moudle;
+  g_can_rx_instance->pCanRxCallback = pCanRxCallback;
+  g_can_rx_instance->p_owner_moudle = owner_moudle;
 
   memset(g_can_rx_instance->rx_buff, 0, sizeof(g_can_rx_instance->rx_buff));
 
   _BSP_CAN_AddFilter(g_can_rx_instance);                           // 添加CAN过滤器规则
-  g_can_rx_instances[g_can_rx_instance_idx++] = g_can_rx_instance; // 将实例保存到can_instance中
+  gp_can_rx_instances[g_can_rx_instance_idx++] = g_can_rx_instance; // 将实例保存到can_instance中
 }
 
 void BSP_CAN_Tx_Init(BSP_CAN_TxInstance *tx_instance, CAN_HandleTypeDef *hcan, uint32_t tx_id, CAN_TxHeaderTypeDef tx_header)
 {
-  tx_instance->can_handle = hcan; // 设置can句柄
+  tx_instance->p_can_handle = hcan; // 设置can句柄
   tx_instance->tx_id = tx_id;     // 设置发送id
 
   // 进行发送报文的配置
@@ -92,7 +100,7 @@ void BSP_CAN_Tx_Init(BSP_CAN_TxInstance *tx_instance, CAN_HandleTypeDef *hcan, u
 uint8_t BSP_CAN_Transmit(BSP_CAN_TxInstance *tx_instance)
 {
   static uint32_t busy_count;
-  if (HAL_CAN_AddTxMessage(tx_instance->can_handle, &tx_instance->tx_header, tx_instance->tx_buff, &tx_instance->tx_mailbox) != HAL_OK)
+  if (HAL_CAN_AddTxMessage(tx_instance->p_can_handle, &tx_instance->tx_header, tx_instance->tx_buff, &tx_instance->tx_mailbox) != HAL_OK)
   {
     // 发送失败就直接返回，不采用阻塞发送
     busy_count++;
@@ -121,14 +129,14 @@ static void BSP_CAN_Rx_FIFOxCallback(CAN_HandleTypeDef *hcan, uint32_t fifox)
     HAL_CAN_GetRxMessage(hcan, fifox, &rx_header, can_rx_buff); // 从FIFO中获取数据
     for (size_t i = 0; i < g_can_rx_instance_idx; ++i)
     {
-      if (hcan == g_can_rx_instances[i]->can_handle && rx_header.StdId == g_can_rx_instances[i]->rx_id)
+      if (hcan == gp_can_rx_instances[i]->p_can_handle && rx_header.StdId == gp_can_rx_instances[i]->rx_id)
       {
         // 若回调不为空就调用
-        if (g_can_rx_instances[i]->can_rx_callback != NULL)
+        if (gp_can_rx_instances[i]->pCanRxCallback != NULL)
         {
-          g_can_rx_instances[i]->rx_len = rx_header.DLC;                      // 保存接收到的数据长度
-          memcpy(g_can_rx_instances[i]->rx_buff, can_rx_buff, rx_header.DLC); // 消息拷贝到对应实例
-          g_can_rx_instances[i]->can_rx_callback(g_can_rx_instances[i]);      // 触发回调进行数据解析和处理
+          gp_can_rx_instances[i]->rx_len = rx_header.DLC;                      // 保存接收到的数据长度
+          memcpy(gp_can_rx_instances[i]->rx_buff, can_rx_buff, rx_header.DLC); // 消息拷贝到对应实例
+          gp_can_rx_instances[i]->pCanRxCallback(gp_can_rx_instances[i]);      // 触发回调进行数据解析和处理
         }
         return;
       }

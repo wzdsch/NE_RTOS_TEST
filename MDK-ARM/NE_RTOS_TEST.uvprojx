@@ -11,7 +11,7 @@
       <ToolsetNumber>0x4</ToolsetNumber>
       <ToolsetName>ARM-ADS</ToolsetName>
       <pArmCC>5060960::V5.06 update 7 (build 960)::.\ARMCC</pArmCC>
-      <pCCUsed>6240000::V6.24::ARMCLANG</pCCUsed>
+      <pCCUsed>5060960::V5.06 update 7 (build 960)::.\ARMCC</pCCUsed>
       <uAC6>0</uAC6>
       <TargetOption>
         <TargetCommonOption>
@@ -341,7 +341,7 @@
               <MiscControls></MiscControls>
               <Define>USE_HAL_DRIVER,STM32F407xx</Define>
               <Undefine></Undefine>
-              <IncludePath>../Core/Inc;../Drivers/STM32F4xx_HAL_Driver/Inc;../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy;../Middlewares/Third_Party/FreeRTOS/Source/include;../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2;../Middlewares/Third_Party/FreeRTOS/Source/portable/RVDS/ARM_CM4F;../Drivers/CMSIS/Device/ST/STM32F4xx/Include;../Drivers/CMSIS/Include;..\Components\tools;..\Components\bsp</IncludePath>
+              <IncludePath>../Core/Inc;../Drivers/STM32F4xx_HAL_Driver/Inc;../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy;../Middlewares/Third_Party/FreeRTOS/Source/include;../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2;../Middlewares/Third_Party/FreeRTOS/Source/portable/RVDS/ARM_CM4F;../Drivers/CMSIS/Device/ST/STM32F4xx/Include;../Drivers/CMSIS/Include;..\Components\tools;..\Components\bsp;..\Components\motor</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -583,16 +583,6 @@
           </Files>
         </Group>
         <Group>
-          <GroupName>BSP</GroupName>
-          <Files>
-            <File>
-              <FileName>bsp_can.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\Components\bsp\bsp_can.c</FilePath>
-            </File>
-          </Files>
-        </Group>
-        <Group>
           <GroupName>TOOLS</GroupName>
           <Files>
             <File>
@@ -604,6 +594,36 @@
               <FileName>double_buffer.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\Components\tools\double_buffer.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>BSP</GroupName>
+          <Files>
+            <File>
+              <FileName>bsp_can.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Components\bsp\bsp_can.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>Motor</GroupName>
+          <Files>
+            <File>
+              <FileName>motor_common.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Components\motor\motor_common.c</FilePath>
+            </File>
+            <File>
+              <FileName>DJI_Motor.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Components\motor\DJI_Motor.c</FilePath>
+            </File>
+            <File>
+              <FileName>DM_Motor.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Components\motor\DM_Motor.c</FilePath>
             </File>
           </Files>
         </Group>

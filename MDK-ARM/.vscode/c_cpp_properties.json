@@ -13,6 +13,7 @@
                 "d:\\RoboMaster\\code\\NE_RTOS_TEST\\Drivers\\CMSIS\\Include",
                 "d:\\RoboMaster\\code\\NE_RTOS_TEST\\Components\\tools",
                 "d:\\RoboMaster\\code\\NE_RTOS_TEST\\Components\\bsp",
+                "d:\\RoboMaster\\code\\NE_RTOS_TEST\\Components\\motor",
                 "D:\\DEV\\Embedded\\keil_v5\\ARM\\ARMCC\\include",
                 "D:\\DEV\\Embedded\\keil_v5\\ARM\\ARMCC\\include\\arm_linux",
                 "D:\\DEV\\Embedded\\keil_v5\\ARM\\ARMCC\\include\\arm_linux_compat",
