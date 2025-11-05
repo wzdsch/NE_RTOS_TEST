@@ -1,3 +1,11 @@
+/*
+ * @Author: Jiang Tianhang 1919524828@qq.com
+ * @Date: 2025-10-26 17:22:39
+ * @LastEditors: Jiang Tianhang 1919524828@qq.com
+ * @LastEditTime: 2025-11-01 16:44:49
+ * @FilePath: \MDK-ARMd:\RoboMaster\code\NE_RTOS_TEST\Components\tools\double_buffer.h
+ * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
+ */
 #ifndef DOUBLE_BUFFER_H
 #define DOUBLE_BUFFER_H
 

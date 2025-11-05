@@ -26,7 +26,7 @@
 /* USER CODE BEGIN Includes */
 #include "motor_common.h"
 #include <stdint.h>
-MotorCommon_t motor_common;
+#include "bsp_can.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -94,7 +94,7 @@ int main(void)
   MX_CAN1_Init();
   MX_CAN2_Init();
   /* USER CODE BEGIN 2 */
-  
+  BSP_CAN_InitAll();
   /* USER CODE END 2 */
 
   /* Init scheduler */

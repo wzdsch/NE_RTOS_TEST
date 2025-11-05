@@ -2,7 +2,7 @@
  * @Author: Jiang Tianhang 1919524828@qq.com
  * @Date: 2025-10-26 16:48:17
  * @LastEditors: Jiang Tianhang 1919524828@qq.com
- * @LastEditTime: 2025-10-29 23:25:57
+ * @LastEditTime: 2025-11-05 18:48:15
  * @FilePath: \MDK-ARMd:\RoboMaster\code\NE_RTOS_TEST\Components\bsp\bsp_can.h
  * @Description: 此模块为can的bsp封装，发送实例和接收实例分开，实现发送配置和注册接收的方式
  */
@@ -47,12 +47,8 @@ typedef struct _RxInstance
 /// @brief 初始化所有CAN设备, 包括使能中断
 void BSP_CAN_InitAll(void);
 
-/// @brief 初始化CAN发送实例
-/// @param tx_instance CAN发送实例指针
-/// @param hcan can句柄
-/// @param tx_id 发送ID, 暂时没啥作用，真正的ID在tx_header中设置
-/// @param tx_header 发送报头
-void BSP_CAN_Tx_Init(BSP_CAN_TxInstance *p_tx_instance, CAN_HandleTypeDef *p_hcan, uint32_t tx_id, CAN_TxHeaderTypeDef tx_header);
+void BSP_CAN_Tx_Init(BSP_CAN_TxInstance *p_tx_instance, CAN_HandleTypeDef *hcan, uint32_t tx_id,
+                     uint32_t IDE, uint32_t DLC, uint32_t RTR);
 
 /// @brief 注册can接收实例, 注册后会自动接收数据和调用回调(目前只实现了StdID), 注册失败会卡死!
 /// @param g_can_rx_instance 接收实例指针(注意: 此指针指向的结构体必须是全局变量, 否则可能会非法访问内存!)

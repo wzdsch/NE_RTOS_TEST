@@ -13,6 +13,9 @@
     "__functional_03": "c",
     "functional": "c",
     "chrono": "c",
-    "dji_motor.h": "c"
+    "dji_motor.h": "c",
+    "double_buffer.h": "c",
+    "can.h": "c",
+    "algorithm": "c"
   }
 }

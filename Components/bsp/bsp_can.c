@@ -2,7 +2,7 @@
  * @Author: Jiang Tianhang 1919524828@qq.com
  * @Date: 2025-10-26 16:48:17
  * @LastEditors: Jiang Tianhang 1919524828@qq.com
- * @LastEditTime: 2025-10-29 23:24:00
+ * @LastEditTime: 2025-11-02 16:55:16
  * @FilePath: \MDK-ARMd:\RoboMaster\code\NE_RTOS_TEST\Components\bsp\bsp_can.c
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
@@ -81,19 +81,52 @@ void BSP_CAN_RxRegister(BSP_CAN_RxInstance *g_can_rx_instance, CAN_HandleTypeDef
   gp_can_rx_instances[g_can_rx_instance_idx++] = g_can_rx_instance; // 将实例保存到can_instance中
 }
 
-void BSP_CAN_Tx_Init(BSP_CAN_TxInstance *tx_instance, CAN_HandleTypeDef *hcan, uint32_t tx_id, CAN_TxHeaderTypeDef tx_header)
+void BSP_CAN_Tx_Init(BSP_CAN_TxInstance *p_tx_instance, CAN_HandleTypeDef *p_hcan, uint32_t tx_id, \
+                     uint32_t IDE, uint32_t DLC, uint32_t RTR)
 {
-  tx_instance->p_can_handle = hcan; // 设置can句柄
-  tx_instance->tx_id = tx_id;     // 设置发送id
+  // 参数校验
+  if (p_tx_instance == NULL || p_hcan == NULL) {
+    while (1) {
+      
+    }
+  }
 
-  // 进行发送报文的配置
-  tx_instance->tx_header.StdId = tx_header.StdId;
-  tx_instance->tx_header.ExtId = tx_header.ExtId;
-  tx_instance->tx_header.IDE = tx_header.IDE;
-  tx_instance->tx_header.RTR = tx_header.RTR;
-  tx_instance->tx_header.DLC = tx_header.DLC;
+  if (IDE != CAN_ID_STD && IDE != CAN_ID_EXT) {
+    while (1) {
+      // 参数错误
+    }
+  }
 
-  memset(tx_instance->tx_buff, 0, sizeof(tx_instance->tx_buff));
+  if (DLC > 8) {
+    while (1) {
+      // 参数错误
+    }
+  }
+
+  if (RTR != CAN_RTR_DATA && RTR != CAN_RTR_REMOTE) {
+    while (1) {
+      // 参数错误
+    }
+  }
+
+  p_tx_instance->p_can_handle = p_hcan; // 设置can句柄
+  p_tx_instance->tx_id = tx_id;     // 设置发送id
+
+  if (IDE == CAN_ID_STD) {
+    p_tx_instance->tx_header.StdId = tx_id;
+  } else if (IDE == CAN_ID_EXT) {
+    p_tx_instance->tx_header.ExtId = tx_id;
+  } else {
+    while (1) {
+      // 参数错误
+    }
+  }
+
+  p_tx_instance->tx_header.IDE = IDE;
+  p_tx_instance->tx_header.DLC = DLC;
+  p_tx_instance->tx_header.RTR = RTR;
+
+  memset(p_tx_instance->tx_buff, 0, sizeof(p_tx_instance->tx_buff));
 }
 
 // 目前tx_buff由发送实例保存，但这样做会增加一次复制的性能开销

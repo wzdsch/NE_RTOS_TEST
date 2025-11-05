@@ -2,7 +2,7 @@
  * @Author: Jiang Tianhang 1919524828@qq.com
  * @Date: 2025-10-29 12:11:24
  * @LastEditors: Jiang Tianhang 1919524828@qq.com
- * @LastEditTime: 2025-11-01 15:57:15
+ * @LastEditTime: 2025-11-05 20:32:37
  * @FilePath: \MDK-ARMd:\RoboMaster\code\NE_RTOS_TEST\Components\motor\motor_common.h
  * @Description: 此模块为电机通用控制/反馈数据模块，所有电机继承包含此模块，实现所有电机统一的接口
  */
@@ -44,15 +44,13 @@ typedef enum
   MOTOR_CTRL_EXTERNAL_LOOP_TOR      // 外部力矩环（目标：set_external_tor；反馈：外部力矩）
 } MotorCtrlMode_e;
 
-#pragma pack(1)
-
 // 电机控制目标联合体，由控制方式自动判断使用哪个成员
 typedef union
 {
   int64_t set_total_pos_ecd; // 累计编码器位置(单位: 电角度) 0 ~ 8191
   uint16_t set_pos_ecd;      // 单圈编码值(单位: 电角度) 0 ~ 8191
   int16_t set_spd_rpm;       // 转速(单位: 转每分)
-  float set_tor_nm;          // 力矩(单位: 牛米)
+  float set_tor;          // 力矩(单位不确定)
 
   float set_external_pos; // 外部位置(IMU等传感器), 单位不确定
   float set_external_spd; // 外部速度(IMU等传感器), 单位不确定
@@ -73,7 +71,7 @@ typedef struct
   int64_t total_pos_ecd; // 累计编码器位置(单位: 电角度)
   uint16_t pos_ecd;      // 单圈编码值(单位: 电角度) 0 ~ 8191
   int16_t spd_rpm;       // 转速(单位: 转每分)
-  float tor_nm;          // 力矩(单位: 牛米)
+  float tor;          // 力矩(单位不确定)
   uint8_t tempreture;    // 温度(单位: 摄氏度)
 } MotorCommon_Measure_t;
 
@@ -111,8 +109,6 @@ typedef struct _MotorCommon_t
   float final_out; // 最终输出
 } MotorCommon_t;
 
-#pragma pack()
-
 void MotorCommon_Init(MotorCommon_t *p_motor_common, const MotorCtrlMode_e ctrl_mode, uint32_t out_values, float max_out);
 void MotorCommon_Pid_Init(MotorCommon_t *p_motor_common, float p_pos_pid_data[5], float p_vel_pid_data[5],
                           float p_tor_pid_data[5]);
@@ -141,7 +137,7 @@ void MotorCommon_Calc(MotorCommon_t *p_motor_common);
         break;                                                               \
       case MOTOR_CTRL_LOOP_TOR:                                              \
       case MOTOR_CTRL_TOR:                                                   \
-        (p_motor_common)->ctrl_data.set_target.set_tor_nm = (target);        \
+        (p_motor_common)->ctrl_data.set_target.set_tor = (target);        \
         break;                                                               \
       case MOTOR_CTRL_EXTERNAL_LOOP_POS_SPD:                                 \
       case MOTOR_CTRL_EXTERNAL_LOOP_POS:                                     \
