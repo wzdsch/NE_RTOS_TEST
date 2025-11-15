@@ -24,7 +24,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "motor_common.h"
+#include "motor_ctrl.h"
 #include <stdint.h>
 #include "bsp_can.h"
 /* USER CODE END Includes */

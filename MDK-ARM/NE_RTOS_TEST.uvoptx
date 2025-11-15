@@ -158,32 +158,32 @@
         <Ww>
           <count>0</count>
           <WinNumber>1</WinNumber>
-          <ItemText>M3508,0x0A</ItemText>
+          <ItemText>set_spd,0x0A</ItemText>
         </Ww>
         <Ww>
           <count>1</count>
           <WinNumber>1</WinNumber>
-          <ItemText>set_spd,0x0A</ItemText>
+          <ItemText>temp</ItemText>
         </Ww>
         <Ww>
           <count>2</count>
           <WinNumber>1</WinNumber>
-          <ItemText>temp</ItemText>
+          <ItemText>GM6020,0x10</ItemText>
         </Ww>
         <Ww>
           <count>3</count>
           <WinNumber>1</WinNumber>
-          <ItemText>GM6020,0x10</ItemText>
+          <ItemText>sg_can1_tx2fe_flg</ItemText>
         </Ww>
         <Ww>
           <count>4</count>
           <WinNumber>1</WinNumber>
-          <ItemText>sg_can1_tx2fe_flg</ItemText>
+          <ItemText>set_total_pos,0x0A</ItemText>
         </Ww>
         <Ww>
           <count>5</count>
           <WinNumber>1</WinNumber>
-          <ItemText>set_total_pos,0x0A</ItemText>
+          <ItemText>M3508</ItemText>
         </Ww>
       </WatchWindow1>
       <Tracepoint>
@@ -763,8 +763,8 @@
       <tvExp>0</tvExp>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>..\Components\motor\motor_common.c</PathWithFileName>
-      <FilenameWithoutPath>motor_common.c</FilenameWithoutPath>
+      <PathWithFileName>..\Components\motor\motor_ctrl.c</PathWithFileName>
+      <FilenameWithoutPath>motor_ctrl.c</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
     </File>

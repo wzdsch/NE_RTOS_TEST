@@ -611,9 +611,9 @@
           <GroupName>Motor</GroupName>
           <Files>
             <File>
-              <FileName>motor_common.c</FileName>
+              <FileName>motor_ctrl.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\Components\motor\motor_common.c</FilePath>
+              <FilePath>..\Components\motor\motor_ctrl.c</FilePath>
             </File>
             <File>
               <FileName>DJI_Motor.c</FileName>

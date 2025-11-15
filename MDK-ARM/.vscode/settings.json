@@ -16,6 +16,18 @@
     "dji_motor.h": "c",
     "double_buffer.h": "c",
     "can.h": "c",
-    "algorithm": "c"
+    "algorithm": "c",
+    "dm_motor.h": "c",
+    "__string": "c",
+    "atomic": "c",
+    "charconv": "c",
+    "cstring": "c",
+    "memory": "c",
+    "utility": "c",
+    "variant": "c",
+    "motor_ctrl.h": "c",
+    "string.h": "c",
+    "locale": "c",
+    "string": "c"
   }
 }
