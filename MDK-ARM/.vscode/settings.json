@@ -28,6 +28,19 @@
     "motor_ctrl.h": "c",
     "string.h": "c",
     "locale": "c",
-    "string": "c"
+    "string": "c",
+    "uthash.h": "c",
+    "stdlib.h": "c",
+    "__locale": "c",
+    "__threading_support": "c",
+    "bitset": "c",
+    "optional": "c",
+    "string_view": "c",
+    "system_error": "c",
+    "type_traits": "c",
+    "vector": "c",
+    "text_encoding": "c",
+    "dm_motor_typedef.h": "c",
+    "tools.h": "c"
   }
 }

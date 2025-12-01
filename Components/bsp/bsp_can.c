@@ -2,7 +2,7 @@
  * @Author: Jiang Tianhang 1919524828@qq.com
  * @Date: 2025-10-26 16:48:17
  * @LastEditors: Jiang Tianhang 1919524828@qq.com
- * @LastEditTime: 2025-11-02 16:55:16
+ * @LastEditTime: 2025-11-21 18:17:14
  * @FilePath: \MDK-ARMd:\RoboMaster\code\NE_RTOS_TEST\Components\bsp\bsp_can.c
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
@@ -10,6 +10,8 @@
 #include "main.h"
 #include <string.h>
 #include "stdlib.h"
+
+#include "uthash.h" // 这是一个快速查找键值对的库, 后续考虑要不要用来代替接收时遍历，我在使用HASH_FIND_INT时出现了bug
 
 /* can instance ptrs storage, used for recv callback */
 // 在CAN产生接收中断会遍历数组,选出hcan和rxid与发生中断的实例相同的那个,调用其回调函数
@@ -48,7 +50,7 @@ void BSP_CAN_InitAll(void)
 }
 
 
-void BSP_CAN_RxRegister(BSP_CAN_RxInstance *g_can_rx_instance, CAN_HandleTypeDef *const hcan,
+void BSP_CAN_RxRegister(BSP_CAN_RxInstance *gp_can_rx_instance, CAN_HandleTypeDef *const hcan,
                         const uint32_t rx_id, void *const owner_moudle,
                         void (*pCanRxCallback)(struct _RxInstance *))
 { // 超过最大负载，卡死
@@ -69,23 +71,22 @@ void BSP_CAN_RxRegister(BSP_CAN_RxInstance *g_can_rx_instance, CAN_HandleTypeDef
   }
 
   // 设置回调函数和接收发送id
-  g_can_rx_instance->p_can_handle = hcan;
-  // instance->tx_id = config->tx_id; // 好像没用,可以删掉
-  g_can_rx_instance->rx_id = rx_id;
-  g_can_rx_instance->pCanRxCallback = pCanRxCallback;
-  g_can_rx_instance->p_owner_moudle = owner_moudle;
+  gp_can_rx_instance->p_can_handle = hcan;
+  gp_can_rx_instance->rx_id = rx_id;
+  gp_can_rx_instance->pCanRxCallback = pCanRxCallback;
+  gp_can_rx_instance->p_owner_moudle = owner_moudle;
 
-  memset(g_can_rx_instance->rx_buff, 0, sizeof(g_can_rx_instance->rx_buff));
+  memset(gp_can_rx_instance->rx_buff, 0, sizeof(gp_can_rx_instance->rx_buff));
 
-  _BSP_CAN_AddFilter(g_can_rx_instance);                           // 添加CAN过滤器规则
-  gp_can_rx_instances[g_can_rx_instance_idx++] = g_can_rx_instance; // 将实例保存到can_instance中
+  _BSP_CAN_AddFilter(gp_can_rx_instance);                           // 添加CAN过滤器规则
+  gp_can_rx_instances[g_can_rx_instance_idx++] = gp_can_rx_instance; // 将实例保存到can_instance中
 }
 
-void BSP_CAN_Tx_Init(BSP_CAN_TxInstance *p_tx_instance, CAN_HandleTypeDef *p_hcan, uint32_t tx_id, \
+void BSP_CAN_Tx_Init(BSP_CAN_TxInstance *p_tx_instance, CAN_HandleTypeDef *p_hcan, uint8_t* p_buf, uint32_t tx_id, \
                      uint32_t IDE, uint32_t DLC, uint32_t RTR)
 {
   // 参数校验
-  if (p_tx_instance == NULL || p_hcan == NULL) {
+  if (p_tx_instance == NULL || p_hcan == NULL || p_buf == NULL) {
     while (1) {
       
     }
@@ -111,6 +112,7 @@ void BSP_CAN_Tx_Init(BSP_CAN_TxInstance *p_tx_instance, CAN_HandleTypeDef *p_hca
 
   p_tx_instance->p_can_handle = p_hcan; // 设置can句柄
   p_tx_instance->tx_id = tx_id;     // 设置发送id
+  p_tx_instance->p_tx_buf = p_buf; // 设置发送缓存
 
   if (IDE == CAN_ID_STD) {
     p_tx_instance->tx_header.StdId = tx_id;
@@ -125,15 +127,13 @@ void BSP_CAN_Tx_Init(BSP_CAN_TxInstance *p_tx_instance, CAN_HandleTypeDef *p_hca
   p_tx_instance->tx_header.IDE = IDE;
   p_tx_instance->tx_header.DLC = DLC;
   p_tx_instance->tx_header.RTR = RTR;
-
-  memset(p_tx_instance->tx_buff, 0, sizeof(p_tx_instance->tx_buff));
 }
 
 // 目前tx_buff由发送实例保存，但这样做会增加一次复制的性能开销
-uint8_t BSP_CAN_Transmit(BSP_CAN_TxInstance *tx_instance)
+uint8_t BSP_CAN_Transmit(BSP_CAN_TxInstance *const tx_instance)
 {
   static uint32_t busy_count;
-  if (HAL_CAN_AddTxMessage(tx_instance->p_can_handle, &tx_instance->tx_header, tx_instance->tx_buff, &tx_instance->tx_mailbox) != HAL_OK)
+  if (HAL_CAN_AddTxMessage(tx_instance->p_can_handle, &tx_instance->tx_header, tx_instance->p_tx_buf, &tx_instance->tx_mailbox) != HAL_OK)
   {
     // 发送失败就直接返回，不采用阻塞发送
     busy_count++;
@@ -142,15 +142,28 @@ uint8_t BSP_CAN_Transmit(BSP_CAN_TxInstance *tx_instance)
   return 1; // 发送成功
 }
 
-void BSP_CAN_SetTxDLC(BSP_CAN_TxInstance *tx_instance, uint8_t length)
+inline void BSP_CAN_SetTxDLC(BSP_CAN_TxInstance *p_tx_instance, uint8_t length)
 {
   // 发送长度错误, 置为默认值 : 8
-  if (length > 8 || length == 0)
+  if (length > 8)
   {
     length = 8;
   }
 
-  tx_instance->tx_header.DLC = length;
+  p_tx_instance->tx_header.DLC = length;
+}
+
+inline void BSP_CAN_SetTxID(BSP_CAN_TxInstance *p_tx_instance, uint32_t tx_id) {
+  p_tx_instance->tx_id = tx_id;
+  if (p_tx_instance->tx_header.IDE == CAN_ID_STD) {
+    p_tx_instance->tx_header.StdId = tx_id;
+  } else if (p_tx_instance->tx_header.IDE == CAN_ID_EXT) {
+    p_tx_instance->tx_header.ExtId = tx_id;
+  }
+}
+
+inline void BSP_CAN_SetTxBuf(BSP_CAN_TxInstance *p_tx_instance, uint8_t *const p_buf) {
+  p_tx_instance->p_tx_buf = p_buf;
 }
 
 static void BSP_CAN_Rx_FIFOxCallback(CAN_HandleTypeDef *hcan, uint32_t fifox)
@@ -171,7 +184,7 @@ static void BSP_CAN_Rx_FIFOxCallback(CAN_HandleTypeDef *hcan, uint32_t fifox)
           memcpy(gp_can_rx_instances[i]->rx_buff, can_rx_buff, rx_header.DLC); // 消息拷贝到对应实例
           gp_can_rx_instances[i]->pCanRxCallback(gp_can_rx_instances[i]);      // 触发回调进行数据解析和处理
         }
-        return;
+        break;
       }
     }
   }

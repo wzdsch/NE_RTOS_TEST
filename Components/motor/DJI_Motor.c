@@ -2,7 +2,7 @@
  * @Author: Jiang Tianhang 1919524828@qq.com
  * @Date: 2025-10-29 12:11:38
  * @LastEditors: Jiang Tianhang 1919524828@qq.com
- * @LastEditTime: 2025-11-15 11:48:27
+ * @LastEditTime: 2025-11-21 17:57:20
  * @FilePath: \MDK-ARMd:\RoboMaster\code\NE_RTOS_TEST\Components\motor\DJI_Motor.c
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
@@ -26,25 +26,56 @@ typedef struct
   DJI_Motor_t *p_motor[4]; // 属于本发送端口的电机指针
 } _DJI_Motor_TxGroup_t;
 
-// 全局大疆电机发送实例以及使能标志，包含了所有发送端口
+// 全局大疆电机发送端口及数据
+uint8_t sg_dji_motor_can1_tx200_buff[8] = {0};
 static _DJI_Motor_TxGroup_t sg_dji_motor_can1_tx200_group;
+
+uint8_t sg_dji_motor_can1_tx1ff_buff[8] = {0};
 static _DJI_Motor_TxGroup_t sg_dji_motor_can1_tx1ff_group;
+
+uint8_t sg_dji_motor_can1_tx2ff_buff[8] = {0};
 static _DJI_Motor_TxGroup_t sg_dji_motor_can1_tx2ff_group;
+
+uint8_t sg_dji_motor_can1_tx1fe_buff[8] = {0};
 static _DJI_Motor_TxGroup_t sg_dji_motor_can1_tx1fe_group;
+
+uint8_t sg_dji_motor_can1_tx2fe_buff[8] = {0};
 static _DJI_Motor_TxGroup_t sg_dji_motor_can1_tx2fe_group;
 
+uint8_t sg_dji_motor_can2_tx200_buff[8] = {0};
 static _DJI_Motor_TxGroup_t sg_dji_motor_can2_tx200_group;
+
+uint8_t sg_dji_motor_can2_tx1ff_buff[8] = {0};
 static _DJI_Motor_TxGroup_t sg_dji_motor_can2_tx1ff_group;
+
+uint8_t sg_dji_motor_can2_tx2ff_buff[8] = {0};
 static _DJI_Motor_TxGroup_t sg_dji_motor_can2_tx2ff_group;
+
+uint8_t sg_dji_motor_can2_tx1fe_buff[8] = {0};
 static _DJI_Motor_TxGroup_t sg_dji_motor_can2_tx1fe_group;
+
+uint8_t sg_dji_motor_can2_tx2fe_buff[8] = {0};
 static _DJI_Motor_TxGroup_t sg_dji_motor_can2_tx2fe_group;
 
-void _DJI_Motor_Callback(BSP_CAN_RxInstance *p_rx_instance);
+void _DJI_Motor_RxCallback(BSP_CAN_RxInstance *p_rx_instance);
 
 /// @brief 初始化所有大疆电机发送端口
 /// @param
 void DJI_Motor_TxInitAll(void)
 {
+  memset(sg_dji_motor_can1_tx200_buff, 0, 8);
+  memset(sg_dji_motor_can1_tx1ff_buff, 0, 8);
+  memset(sg_dji_motor_can1_tx2ff_buff, 0, 8);
+  memset(sg_dji_motor_can1_tx1fe_buff, 0, 8);
+  memset(sg_dji_motor_can1_tx2fe_buff, 0, 8);
+
+  memset(sg_dji_motor_can2_tx200_buff, 0, 8);
+  memset(sg_dji_motor_can2_tx1ff_buff, 0, 8);
+  memset(sg_dji_motor_can2_tx2ff_buff, 0, 8);
+  memset(sg_dji_motor_can2_tx1fe_buff, 0, 8);
+  memset(sg_dji_motor_can2_tx2fe_buff, 0, 8);
+  
+
   sg_dji_motor_can1_tx200_group.en = 0;
   sg_dji_motor_can1_tx1ff_group.en = 0;
   sg_dji_motor_can1_tx2ff_group.en = 0;
@@ -107,17 +138,27 @@ void DJI_Motor_TxInitAll(void)
   sg_dji_motor_can2_tx2fe_group.p_motor[2] = NULL;
   sg_dji_motor_can2_tx2fe_group.p_motor[3] = NULL;
 
-  BSP_CAN_Tx_Init(&sg_dji_motor_can1_tx200_group.p_tx_instance, &hcan1, 0x200, CAN_ID_STD, 8, CAN_RTR_DATA);
-  BSP_CAN_Tx_Init(&sg_dji_motor_can1_tx1ff_group.p_tx_instance, &hcan1, 0x1ff, CAN_ID_STD, 8, CAN_RTR_DATA);
-  BSP_CAN_Tx_Init(&sg_dji_motor_can1_tx2ff_group.p_tx_instance, &hcan1, 0x2ff, CAN_ID_STD, 8, CAN_RTR_DATA);
-  BSP_CAN_Tx_Init(&sg_dji_motor_can1_tx1fe_group.p_tx_instance, &hcan1, 0x1fe, CAN_ID_STD, 8, CAN_RTR_DATA);
-  BSP_CAN_Tx_Init(&sg_dji_motor_can1_tx2fe_group.p_tx_instance, &hcan1, 0x2fe, CAN_ID_STD, 8, CAN_RTR_DATA);
+  BSP_CAN_Tx_Init(&sg_dji_motor_can1_tx200_group.p_tx_instance, &hcan1,\
+                  sg_dji_motor_can1_tx200_buff, 0x200, CAN_ID_STD, 8, CAN_RTR_DATA);
+  BSP_CAN_Tx_Init(&sg_dji_motor_can1_tx1ff_group.p_tx_instance, &hcan1, \
+                  sg_dji_motor_can1_tx1ff_buff, 0x1ff, CAN_ID_STD, 8, CAN_RTR_DATA);
+  BSP_CAN_Tx_Init(&sg_dji_motor_can1_tx2ff_group.p_tx_instance, &hcan1, \
+                  sg_dji_motor_can1_tx2ff_buff, 0x2ff, CAN_ID_STD, 8, CAN_RTR_DATA);
+  BSP_CAN_Tx_Init(&sg_dji_motor_can1_tx1fe_group.p_tx_instance, &hcan1, \
+                  sg_dji_motor_can1_tx1fe_buff, 0x1fe, CAN_ID_STD, 8, CAN_RTR_DATA);
+  BSP_CAN_Tx_Init(&sg_dji_motor_can1_tx2fe_group.p_tx_instance, &hcan1, \
+                  sg_dji_motor_can1_tx2fe_buff, 0x2fe, CAN_ID_STD, 8, CAN_RTR_DATA);
 
-  BSP_CAN_Tx_Init(&sg_dji_motor_can2_tx200_group.p_tx_instance, &hcan2, 0x200, CAN_ID_STD, 8, CAN_RTR_DATA);
-  BSP_CAN_Tx_Init(&sg_dji_motor_can2_tx1ff_group.p_tx_instance, &hcan2, 0x1ff, CAN_ID_STD, 8, CAN_RTR_DATA);
-  BSP_CAN_Tx_Init(&sg_dji_motor_can2_tx2ff_group.p_tx_instance, &hcan2, 0x2ff, CAN_ID_STD, 8, CAN_RTR_DATA);
-  BSP_CAN_Tx_Init(&sg_dji_motor_can2_tx1fe_group.p_tx_instance, &hcan2, 0x1fe, CAN_ID_STD, 8, CAN_RTR_DATA);
-  BSP_CAN_Tx_Init(&sg_dji_motor_can2_tx2fe_group.p_tx_instance, &hcan2, 0x2fe, CAN_ID_STD, 8, CAN_RTR_DATA);
+  BSP_CAN_Tx_Init(&sg_dji_motor_can2_tx200_group.p_tx_instance, &hcan2, \
+                  sg_dji_motor_can2_tx200_buff, 0x200, CAN_ID_STD, 8, CAN_RTR_DATA);
+  BSP_CAN_Tx_Init(&sg_dji_motor_can2_tx1ff_group.p_tx_instance, &hcan2, \
+                  sg_dji_motor_can2_tx1ff_buff, 0x1ff, CAN_ID_STD, 8, CAN_RTR_DATA);
+  BSP_CAN_Tx_Init(&sg_dji_motor_can2_tx2ff_group.p_tx_instance, &hcan2, \
+                  sg_dji_motor_can2_tx2ff_buff, 0x2ff, CAN_ID_STD, 8, CAN_RTR_DATA);
+  BSP_CAN_Tx_Init(&sg_dji_motor_can2_tx1fe_group.p_tx_instance, &hcan2, \
+                  sg_dji_motor_can2_tx1fe_buff, 0x1fe, CAN_ID_STD, 8, CAN_RTR_DATA);
+  BSP_CAN_Tx_Init(&sg_dji_motor_can2_tx2fe_group.p_tx_instance, &hcan2, \
+                  sg_dji_motor_can2_tx2fe_buff, 0x2fe, CAN_ID_STD, 8, CAN_RTR_DATA);
 }
 
 /// @brief 大疆电机初始化
@@ -128,7 +169,7 @@ void DJI_Motor_TxInitAll(void)
 /// @param callback 回调函数
 /// @param gm6020_ctrl_mode 6020控制模式 ( 电压 / 电流 ), 仅当电机是6020时有效
 void DJI_Motor_Init(DJI_Motor_t *const p_motor, CAN_HandleTypeDef *p_hcan, DJI_Motor_Type_e motor_type,
-                    const uint32_t rx_id, void (*const callback)(DJI_Motor_t *), GM6020_CtrlMode_e gm6020_ctrl_mode)
+                    const uint32_t rx_id, void (*const MotorRxCallback)(DJI_Motor_t *), GM6020_CtrlMode_e gm6020_ctrl_mode)
 {
   if (p_hcan == NULL || p_motor == NULL)
   {
@@ -137,7 +178,7 @@ void DJI_Motor_Init(DJI_Motor_t *const p_motor, CAN_HandleTypeDef *p_hcan, DJI_M
     }
   }
 
-  // 通过电机类型及接收id, 确定发送id及使能端口
+  // 通过电机类型及接收id, 确定发送id及使能端口, 并将电机保存在电机组中
   if (motor_type == DJI_MOTOR_TYPE_M3508 || motor_type == DJI_MOTOR_TYPE_M2006)
   {
     switch (rx_id)
@@ -151,11 +192,13 @@ void DJI_Motor_Init(DJI_Motor_t *const p_motor, CAN_HandleTypeDef *p_hcan, DJI_M
       {
         p_motor->_p_can_tx_instance = &sg_dji_motor_can1_tx200_group.p_tx_instance;
         sg_dji_motor_can1_tx200_group.en = 1;
+        sg_dji_motor_can1_tx200_group.p_motor[rx_id - 0x201] = p_motor;
       }
       else if (p_hcan == &hcan2)
       {
         p_motor->_p_can_tx_instance = &sg_dji_motor_can2_tx200_group.p_tx_instance;
         sg_dji_motor_can2_tx200_group.en = 1;
+        sg_dji_motor_can2_tx200_group.p_motor[rx_id - 0x201] = p_motor;
       }
       break;
     case 0x205:
@@ -167,11 +210,13 @@ void DJI_Motor_Init(DJI_Motor_t *const p_motor, CAN_HandleTypeDef *p_hcan, DJI_M
       {
         p_motor->_p_can_tx_instance = &sg_dji_motor_can1_tx1ff_group.p_tx_instance;
         sg_dji_motor_can1_tx1ff_group.en = 1;
+        sg_dji_motor_can1_tx1ff_group.p_motor[rx_id - 0x205] = p_motor;
       }
       else if (p_hcan == &hcan2)
       {
         p_motor->_p_can_tx_instance = &sg_dji_motor_can2_tx1ff_group.p_tx_instance;
         sg_dji_motor_can2_tx1ff_group.en = 1;
+        sg_dji_motor_can2_tx1ff_group.p_motor[rx_id - 0x205] = p_motor;
       }
       break;
     default:
@@ -196,12 +241,14 @@ void DJI_Motor_Init(DJI_Motor_t *const p_motor, CAN_HandleTypeDef *p_hcan, DJI_M
           p_motor->tx_id = 0x1FF;
           p_motor->_p_can_tx_instance = &sg_dji_motor_can1_tx1ff_group.p_tx_instance;
           sg_dji_motor_can1_tx1ff_group.en = 1;
+          sg_dji_motor_can1_tx1ff_group.p_motor[rx_id - 0x205] = p_motor;
         }
         else
         {
           p_motor->tx_id = 0x1FE;
           p_motor->_p_can_tx_instance = &sg_dji_motor_can1_tx1fe_group.p_tx_instance;
           sg_dji_motor_can1_tx1fe_group.en = 1;
+          sg_dji_motor_can1_tx1fe_group.p_motor[rx_id - 0x205] = p_motor;
         }
       }
       else if (p_hcan == &hcan2)
@@ -211,12 +258,14 @@ void DJI_Motor_Init(DJI_Motor_t *const p_motor, CAN_HandleTypeDef *p_hcan, DJI_M
           p_motor->tx_id = 0x1FF;
           p_motor->_p_can_tx_instance = &sg_dji_motor_can2_tx1ff_group.p_tx_instance;
           sg_dji_motor_can2_tx1ff_group.en = 1;
+          sg_dji_motor_can2_tx1ff_group.p_motor[rx_id - 0x205] = p_motor;
         }
         else
         {
           p_motor->tx_id = 0x1FE;
           p_motor->_p_can_tx_instance = &sg_dji_motor_can2_tx1fe_group.p_tx_instance;
           sg_dji_motor_can2_tx1fe_group.en = 1;
+          sg_dji_motor_can2_tx1fe_group.p_motor[rx_id - 0x205] = p_motor;
         }
       }
       break;
@@ -230,12 +279,14 @@ void DJI_Motor_Init(DJI_Motor_t *const p_motor, CAN_HandleTypeDef *p_hcan, DJI_M
           p_motor->tx_id = 0x2FF;
           p_motor->_p_can_tx_instance = &sg_dji_motor_can1_tx2ff_group.p_tx_instance;
           sg_dji_motor_can1_tx2ff_group.en = 1;
+          sg_dji_motor_can1_tx2ff_group.p_motor[rx_id - 0x209] = p_motor;
         }
         else
         {
           p_motor->tx_id = 0x2FE;
           p_motor->_p_can_tx_instance = &sg_dji_motor_can1_tx2fe_group.p_tx_instance;
           sg_dji_motor_can1_tx2fe_group.en = 1;
+          sg_dji_motor_can1_tx2fe_group.p_motor[rx_id - 0x209] = p_motor;
         }
       }
       else if (p_hcan == &hcan2)
@@ -245,12 +296,14 @@ void DJI_Motor_Init(DJI_Motor_t *const p_motor, CAN_HandleTypeDef *p_hcan, DJI_M
           p_motor->tx_id = 0x2FF;
           p_motor->_p_can_tx_instance = &sg_dji_motor_can2_tx2ff_group.p_tx_instance;
           sg_dji_motor_can2_tx2ff_group.en = 1;
+          sg_dji_motor_can2_tx2ff_group.p_motor[rx_id - 0x209] = p_motor;
         }
         else
         {
           p_motor->tx_id = 0x2FE;
           p_motor->_p_can_tx_instance = &sg_dji_motor_can2_tx2fe_group.p_tx_instance;
           sg_dji_motor_can2_tx2fe_group.en = 1;
+          sg_dji_motor_can2_tx2fe_group.p_motor[rx_id - 0x209] = p_motor;
         }
       }
       break;
@@ -272,16 +325,16 @@ void DJI_Motor_Init(DJI_Motor_t *const p_motor, CAN_HandleTypeDef *p_hcan, DJI_M
   p_motor->type = motor_type;
   p_motor->p_hcan = p_hcan;
   p_motor->rx_id = rx_id;
-  p_motor->MotorRxCallback = callback;
+  p_motor->MotorRxCallback = MotorRxCallback;
   p_motor->GM6020_ctrl_mode = gm6020_ctrl_mode;
 
   p_motor->set_cmd = 0;
   p_motor->state = DJI_MOTOR_STATE_DISABLE;
 
   memset(&p_motor->ctrl, 0, sizeof(p_motor->ctrl));
-  memset(&p_motor->measure_data, 0, sizeof(p_motor->measure_data));
+  memset(&p_motor->measure, 0, sizeof(p_motor->measure));
 
-  BSP_CAN_RxRegister(&p_motor->can_rx_instance, p_hcan, rx_id, p_motor, _DJI_Motor_Callback);
+  BSP_CAN_RxRegister(&p_motor->can_rx_instance, p_hcan, rx_id, p_motor, _DJI_Motor_RxCallback);
 }
 
 inline void _DJI_Motor_GetCtrlCmd(DJI_Motor_t *p_motor)
@@ -303,8 +356,8 @@ void _DJI_Motor_UpdateTxBuf(DJI_Motor_t *p_motor)
   // 0x202, temp = ((0x202 - 0x200 - 1) % 4) * 2 = 2
   // 发送数据位就是2和3
   uint8_t temp = ((p_motor->rx_id - 0x200 - 1) % 4) * 2;
-  p_motor->_p_can_tx_instance->tx_buff[temp] = p_motor->set_cmd >> 8;
-  p_motor->_p_can_tx_instance->tx_buff[temp + 1] = p_motor->set_cmd;
+  p_motor->_p_can_tx_instance->p_tx_buf[temp] = p_motor->set_cmd >> 8;
+  p_motor->_p_can_tx_instance->p_tx_buf[temp + 1] = p_motor->set_cmd;
 }
 
 void _DJI_Motor_UpdateGroupTxBuf(_DJI_Motor_TxGroup_t *p_group)
@@ -395,7 +448,7 @@ void DJI_Motor_Transmit(CAN_HandleTypeDef *p_hcan, uint32_t tx_id)
 /// @param p_motor 电机结构体指针
 inline void _DJI_Motor_TotalEcdCalc(DJI_Motor_t *const p_motor)
 {
-  int16_t delta_ecd = p_motor->measure_data.pos_ecd - p_motor->measure_data.pos_last_ecd;
+  int16_t delta_ecd = p_motor->measure.pos_ecd - p_motor->measure.pos_last_ecd;
 
   // 累计编码过零处理
   if (delta_ecd < -DJI_MOTOR_ECD_CMD_HALF_ROUND)
@@ -407,37 +460,37 @@ inline void _DJI_Motor_TotalEcdCalc(DJI_Motor_t *const p_motor)
     delta_ecd -= DJI_MOTOR_ECD_CMD_ROUND;
   }
 
-  p_motor->measure_data.pos_total_ecd += delta_ecd;
-
-  p_motor->measure_data.pos_last_ecd = p_motor->measure_data.pos_ecd;
-  p_motor->measure_data.pos_total_ecd_f = p_motor->measure_data.pos_total_ecd;
+  p_motor->measure.pos_total_ecd += delta_ecd;
 }
 
 /// @brief 大疆电机解包, 仅模块内使用
 /// @param p_motor 电机结构体指针
 void _DJI_Motor_UnpackRXD(DJI_Motor_t *p_motor)
 {
-  p_motor->measure_data.pos_ecd = (p_motor->can_rx_instance.rx_buff[0] << 8) | p_motor->can_rx_instance.rx_buff[1];
-  p_motor->measure_data.pos_ecd_f = p_motor->measure_data.pos_ecd;
+  p_motor->measure.pos_ecd = (p_motor->can_rx_instance.rx_buff[0] << 8) | p_motor->can_rx_instance.rx_buff[1];
+  p_motor->measure.pos_ecd_f = p_motor->measure.pos_ecd;
 
-  p_motor->measure_data.spd_rpm = (p_motor->can_rx_instance.rx_buff[2] << 8) | p_motor->can_rx_instance.rx_buff[3];
-  p_motor->measure_data.spd_rpm_f = p_motor->measure_data.spd_rpm;
+  p_motor->measure.spd_rpm = (p_motor->can_rx_instance.rx_buff[2] << 8) | p_motor->can_rx_instance.rx_buff[3];
+  p_motor->measure.spd_rpm_f = p_motor->measure.spd_rpm;
 
-  p_motor->measure_data.tor_crt_cmd = (p_motor->can_rx_instance.rx_buff[4] << 8) | p_motor->can_rx_instance.rx_buff[5];
-  p_motor->measure_data.tor_crt_cmd_f = p_motor->measure_data.tor_crt_cmd;
+  p_motor->measure.tor_crt_cmd = (p_motor->can_rx_instance.rx_buff[4] << 8) | p_motor->can_rx_instance.rx_buff[5];
+  p_motor->measure.tor_crt_cmd_f = p_motor->measure.tor_crt_cmd;
 
   // 2006没有温度反馈
   if (p_motor->type != DJI_MOTOR_TYPE_M2006)
   {
-    p_motor->measure_data.tempreture = p_motor->can_rx_instance.rx_buff[6];
+    p_motor->measure.tempreture = p_motor->can_rx_instance.rx_buff[6];
   }
 
   _DJI_Motor_TotalEcdCalc(p_motor);
+
+  p_motor->measure.pos_last_ecd = p_motor->measure.pos_ecd;
+  p_motor->measure.pos_total_ecd_f = p_motor->measure.pos_total_ecd;
 }
 
 /// @brief 大疆电机回调函数, 仅模块内使用
 /// @param p_rx_instance
-void _DJI_Motor_Callback(BSP_CAN_RxInstance *p_rx_instance)
+void _DJI_Motor_RxCallback(BSP_CAN_RxInstance *p_rx_instance)
 {
   _DJI_Motor_UnpackRXD((DJI_Motor_t *)p_rx_instance->p_owner_moudle);
 

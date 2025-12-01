@@ -2,7 +2,7 @@
  * @Author: Jiang Tianhang 1919524828@qq.com
  * @Date: 2025-10-26 16:48:17
  * @LastEditors: Jiang Tianhang 1919524828@qq.com
- * @LastEditTime: 2025-11-05 18:48:15
+ * @LastEditTime: 2025-11-21 18:01:37
  * @FilePath: \MDK-ARMd:\RoboMaster\code\NE_RTOS_TEST\Components\bsp\bsp_can.h
  * @Description: 此模块为can的bsp封装，发送实例和接收实例分开，实现发送配置和注册接收的方式
  */
@@ -22,7 +22,7 @@ typedef struct _TxInstance
     CAN_HandleTypeDef *p_can_handle; // can句柄
     CAN_TxHeaderTypeDef tx_header; // 发送报头
     uint32_t tx_id;                // 发送id
-    uint8_t tx_buff[8];            // 发送缓存, 最大为8个字节
+    uint8_t* p_tx_buf;            // 外部发送缓存指针, 注意内存长度>=DLC, 并保证此参数的有效性
     uint32_t tx_mailbox;           // 发送邮箱
 } BSP_CAN_TxInstance;
 
@@ -47,7 +47,15 @@ typedef struct _RxInstance
 /// @brief 初始化所有CAN设备, 包括使能中断
 void BSP_CAN_InitAll(void);
 
-void BSP_CAN_Tx_Init(BSP_CAN_TxInstance *p_tx_instance, CAN_HandleTypeDef *hcan, uint32_t tx_id,
+/// @brief can发送实例初始化
+/// @param p_tx_instance 发送实例指针
+/// @param hcan can句柄
+/// @param p_buf 发送缓存指针, 长度大于DLC
+/// @param tx_id 发送id
+/// @param IDE id类型 STD / EXT
+/// @param DLC 发送长度(字节)
+/// @param RTR 数据类型 数据 / 遥控帧
+void BSP_CAN_Tx_Init(BSP_CAN_TxInstance *p_tx_instance, CAN_HandleTypeDef *hcan, uint8_t* p_buf, uint32_t tx_id,
                      uint32_t IDE, uint32_t DLC, uint32_t RTR);
 
 /// @brief 注册can接收实例, 注册后会自动接收数据和调用回调(目前只实现了StdID), 注册失败会卡死!
@@ -61,13 +69,23 @@ void BSP_CAN_RxRegister(BSP_CAN_RxInstance *gp_can_rx_instance, CAN_HandleTypeDe
                         void (*pCanRxCallback)(struct _RxInstance *));
 
 /// @brief 设置CAN发送实例的发送数据长度
-/// @param tx_instance CAN发送实例指针,CAN发送实例指针, 注意确保该参数有效性
+/// @param p_tx_instance CAN发送实例指针, 注意确保该参数有效性
 /// @param length 发送数据长度(字节)
 void BSP_CAN_SetTxDLC(BSP_CAN_TxInstance *p_tx_instance, uint8_t length);
+
+/// @brief 设置CAN发送实例的发送ID
+/// @param p_tx_instance CAN发送实例指针, 注意确保该参数有效性
+/// @param tx_id 发送ID
+void BSP_CAN_SetTxID(BSP_CAN_TxInstance *p_tx_instance, const uint32_t tx_id);
+
+/// @brief 设置外部发送缓存, 注意数据长度必须与DLC一致
+/// @param p_tx_instance 
+/// @param p_data 
+void BSP_CAN_SetTxBuf(BSP_CAN_TxInstance *p_tx_instance, uint8_t *const p_data);
 
 /// @brief 将CAN发送实例的发送缓存填入发送邮箱, 邮箱满或发送失败立即返回，不会阻塞
 /// @param tx_instance CAN发送实例指针, 注意确保该参数有效性
 /// @return 成功返回1，失败返回0
-uint8_t BSP_CAN_Transmit(BSP_CAN_TxInstance *p_tx_instance);
+uint8_t BSP_CAN_Transmit(BSP_CAN_TxInstance *const p_tx_instance);
 
 #endif

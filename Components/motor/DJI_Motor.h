@@ -65,7 +65,7 @@ typedef struct _DJI_Motor_t {
 
   GM6020_CtrlMode_e GM6020_ctrl_mode; // 6020控制模式, 仅当type为GM6020时有效
 
-  DJI_Motor_Measure_t measure_data; // 电机测量数据
+  DJI_Motor_Measure_t measure; // 电机测量数据
 
   MotorCtrl_t ctrl; // 电机控制结构体
 
