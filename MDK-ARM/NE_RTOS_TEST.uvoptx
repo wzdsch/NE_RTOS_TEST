@@ -193,7 +193,12 @@
         <Ww>
           <count>7</count>
           <WinNumber>1</WinNumber>
-          <ItemText>set_pos</ItemText>
+          <ItemText>size,0x0A</ItemText>
+        </Ww>
+        <Ww>
+          <count>8</count>
+          <WinNumber>1</WinNumber>
+          <ItemText>set</ItemText>
         </Ww>
       </WatchWindow1>
       <Tracepoint>

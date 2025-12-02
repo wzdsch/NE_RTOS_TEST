@@ -48,7 +48,7 @@
 /* USER CODE BEGIN Variables */
 osThreadId_t motorTaskHandle;
 
-float set_pos = 0;
+float set = 0.f;
 
 DM_Motor_t J8009P;
 /* USER CODE END Variables */
@@ -132,13 +132,17 @@ void StartDefaultTask(void *argument)
 void MotorTask(void *argument)
 {
   DM_Motor_Init(&J8009P, &hcan1, 0x01, 0x21, 12.5f, 45.f, 54.f, NULL);
-  // DM_Motor_MIT_SetPD(&J8009P, 160.f, 3.f);
-  DM_Motor_POS_SPD_SetSpd(&J8009P, 40.f);
+  DM_Motor_MIT_SetPD(&J8009P, 160.f, 3.f);
+  // DM_Motor_POS_SPD_SetSpd(&J8009P, 40.f);
   DM_Motor_Enable(&J8009P);
+  // DM_Motor_SPD_SetSpd(&J8009P, set);
   while (1)
   {
-    DM_Motor_POS_SPD_SetPos(&J8009P, set_pos);
-		DM_Motor_POS_SPD_Send(&J8009P);
+    // DM_Motor_POS_SPD_SetPos(&J8009P, set_pos);
+    DM_Motor_MIT_SetPos(&J8009P, set);
+    DM_Motor_MIT_Send(&J8009P);
+    // DM_Motor_SPD_SetSpd(&J8009P, 10.f);
+    // DM_Motor_SPD_Send(&J8009P);
     osDelay(1);
   }
 }

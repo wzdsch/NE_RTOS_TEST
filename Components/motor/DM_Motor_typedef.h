@@ -2,7 +2,7 @@
  * @Author: Jiang Tianhang 1919524828@qq.com
  * @Date: 2025-11-18 12:34:54
  * @LastEditors: Jiang Tianhang 1919524828@qq.com
- * @LastEditTime: 2025-12-01 23:23:48
+ * @LastEditTime: 2025-12-02 20:34:38
  * @FilePath: \MDK-ARMd:\RoboMaster\code\NE_RTOS_TEST\Components\motor\DM_Motor_typedef.h
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
@@ -31,13 +31,13 @@
 #define DM_MIT_TOR_BITS 12
 
 typedef struct {
-  float pos; // 位置
-  float spd; // 速度
+  float pos_rad; // 位置 单位: 弧度
+  float spd_radps; // 速度 单位: 弧度/秒
 
   float kp; // 位置系数
   float kd; // 速度系数 (对位置进行控制时，kd 不能赋 0，否则会造成电机震荡，甚至失控)
 
-  float torq; // 力矩
+  float torq_nm; // 力矩 单位: 牛米
 } _DM_Motor_MIT_CtrlData_t;
 
 typedef struct {
@@ -52,8 +52,8 @@ typedef struct {
 
 #pragma pack(1)
 typedef struct {
-  float pos;
-  float spd;
+  float pos_rad;
+  float spd_radps;
 } _DM_Motor_POS_SPD_CtrlData_t;
 
 typedef union {
@@ -69,7 +69,7 @@ typedef union {
 
 typedef union {
   uint8_t txd[4];
-  float spd;
+  float spd_radps;
 } DM_Motor_SPD_Data_u;
 
 #endif

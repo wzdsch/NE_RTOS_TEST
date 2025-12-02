@@ -2,7 +2,7 @@
  * @Author: Jiang Tianhang 1919524828@qq.com
  * @Date: 2025-10-29 12:12:28
  * @LastEditors: Jiang Tianhang 1919524828@qq.com
- * @LastEditTime: 2025-12-01 21:20:11
+ * @LastEditTime: 2025-12-02 20:36:09
  * @FilePath: \MDK-ARMd:\RoboMaster\code\NE_RTOS_TEST\Components\motor\DM_Motor.c
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
@@ -118,7 +118,7 @@ void DM_Motor_SaveZeroPos(DM_Motor_t *const p_motor)
 
 inline void _DM_Motor_TotalPosCalc(DM_Motor_t *const p_motor)
 {
-  float delta_pos = p_motor->measure.pos - p_motor->measure.last_pos;
+  float delta_pos = p_motor->measure.pos_rad - p_motor->measure.last_pos_rad;
   if (delta_pos > p_motor->PMAX)
   {
     delta_pos -= p_motor->PMAX * 2;
@@ -128,7 +128,7 @@ inline void _DM_Motor_TotalPosCalc(DM_Motor_t *const p_motor)
     delta_pos += p_motor->PMAX * 2;
   }
 
-  p_motor->measure.total_pos += delta_pos;
+  p_motor->measure.total_pos_rad += delta_pos;
 }
 
 void _DM_Motor_UnpackRXD(DM_Motor_t *const p_motor)
@@ -136,15 +136,15 @@ void _DM_Motor_UnpackRXD(DM_Motor_t *const p_motor)
   p_motor->measure.err_code = (DM_Motor_Err_e)((p_motor->rx_instance.rx_buff[0] & 0xF0) >> 4); // 4bit
   p_motor->measure.id = p_motor->rx_instance.rx_buff[0] & 0x0F;                                // 4bit
 
-  p_motor->measure.pos =
+  p_motor->measure.pos_rad =
       uint16_to_float((p_motor->rx_instance.rx_buff[1] << 8) | p_motor->rx_instance.rx_buff[2],
                       -p_motor->PMAX, p_motor->PMAX, 16); // 16bit
 
-  p_motor->measure.spd =
+  p_motor->measure.spd_radps =
       uint16_to_float(p_motor->rx_instance.rx_buff[3] << 4 | ((p_motor->rx_instance.rx_buff[4] & 0xF0) >> 4),
                       -p_motor->VMAX, p_motor->VMAX, 12); // 12bit
 
-  p_motor->measure.torq =
+  p_motor->measure.torq_nm =
       uint16_to_float((p_motor->rx_instance.rx_buff[4] & 0x0F) << 8 | p_motor->rx_instance.rx_buff[5],
                       -p_motor->TMAX, p_motor->TMAX, 12); // 12bit
 
@@ -153,7 +153,7 @@ void _DM_Motor_UnpackRXD(DM_Motor_t *const p_motor)
 
   _DM_Motor_TotalPosCalc(p_motor);
 
-  p_motor->measure.last_pos = p_motor->measure.pos;
+  p_motor->measure.last_pos_rad = p_motor->measure.pos_rad;
 }
 
 void _DM_Motor_RxCallback(BSP_CAN_RxInstance *p_rx_instance)
@@ -201,7 +201,7 @@ void DM_Motor_MIT_SetTorq(DM_Motor_t *const p_motor, float torq)
   {
     torq = -p_motor->TMAX;
   }
-  p_motor->mit_mode_data.ctrl_data.torq = torq;
+  p_motor->mit_mode_data.ctrl_data.torq_nm = torq;
 }
 
 void DM_Motor_MIT_SetPos(DM_Motor_t *const p_motor, float pos)
@@ -214,7 +214,7 @@ void DM_Motor_MIT_SetPos(DM_Motor_t *const p_motor, float pos)
   {
     pos = -p_motor->PMAX;
   }
-  p_motor->mit_mode_data.ctrl_data.pos = pos;
+  p_motor->mit_mode_data.ctrl_data.pos_rad = pos;
 }
 
 void DM_Motor_MIT_SetSpd(DM_Motor_t *const p_motor, float spd)
@@ -227,16 +227,16 @@ void DM_Motor_MIT_SetSpd(DM_Motor_t *const p_motor, float spd)
   {
     spd = -p_motor->VMAX;
   }
-  p_motor->mit_mode_data.ctrl_data.spd = spd;
+  p_motor->mit_mode_data.ctrl_data.spd_radps = spd;
 }
 
 void DM_Motor_MIT_Send(DM_Motor_t *const p_motor)
 {
-  uint16_t pos_ecd = float_to_uint16(p_motor->mit_mode_data.ctrl_data.pos, -p_motor->PMAX, p_motor->PMAX, 16),    // 16bit
-           spd_ecd = float_to_uint16(p_motor->mit_mode_data.ctrl_data.spd, -p_motor->VMAX, p_motor->VMAX, 12),    // 12bit
+  uint16_t pos_ecd = float_to_uint16(p_motor->mit_mode_data.ctrl_data.pos_rad, -p_motor->PMAX, p_motor->PMAX, 16),    // 16bit
+           spd_ecd = float_to_uint16(p_motor->mit_mode_data.ctrl_data.spd_radps, -p_motor->VMAX, p_motor->VMAX, 12),    // 12bit
            kp_ecd = float_to_uint16(p_motor->mit_mode_data.ctrl_data.kp, DM_KP_MIN, DM_KP_MAX, 12),               // 12bit
            kd_ecd = float_to_uint16(p_motor->mit_mode_data.ctrl_data.kd, DM_KD_MIN, DM_KD_MAX, 12),               // 12bit
-           torq_ecd = float_to_uint16(p_motor->mit_mode_data.ctrl_data.torq, -p_motor->TMAX, p_motor->TMAX, 12);  // 12bit
+           torq_ecd = float_to_uint16(p_motor->mit_mode_data.ctrl_data.torq_nm, -p_motor->TMAX, p_motor->TMAX, 12);  // 12bit
 
   p_motor->mit_mode_data.txd[0] = (pos_ecd >> 8);
   p_motor->mit_mode_data.txd[1] = pos_ecd;
@@ -263,7 +263,7 @@ void DM_Motor_POS_SPD_SetPos(DM_Motor_t *const p_motor, float pos)
   {
     pos = -p_motor->PMAX;
   }
-  p_motor->pos_spd_mode_data_u.ctrl_data.pos = pos;
+  p_motor->pos_spd_mode_data_u.ctrl_data.pos_rad = pos;
 }
 
 void DM_Motor_POS_SPD_SetSpd(DM_Motor_t *const p_motor, float spd)
@@ -276,7 +276,7 @@ void DM_Motor_POS_SPD_SetSpd(DM_Motor_t *const p_motor, float spd)
   {
     spd = -p_motor->VMAX;
   }
-  p_motor->pos_spd_mode_data_u.ctrl_data.spd = spd;
+  p_motor->pos_spd_mode_data_u.ctrl_data.spd_radps = spd;
 }
 
 void DM_Motor_POS_SPD_Send(DM_Motor_t *const p_motor)
@@ -297,7 +297,7 @@ void DM_Motor_SPD_SetSpd(DM_Motor_t *const p_motor, float spd)
   {
     spd = -p_motor->VMAX;
   }
-  p_motor->spd_mode_data_u.spd = spd;
+  p_motor->spd_mode_data_u.spd_radps = spd;
 }
 
 void DM_Motor_SPD_Send(DM_Motor_t *const p_motor)

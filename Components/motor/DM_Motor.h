@@ -2,7 +2,7 @@
  * @Author: Jiang Tianhang 1919524828@qq.com
  * @Date: 2025-10-29 12:12:13
  * @LastEditors: Jiang Tianhang 1919524828@qq.com
- * @LastEditTime: 2025-12-01 21:09:31
+ * @LastEditTime: 2025-12-02 20:33:06
  * @FilePath: \MDK-ARMd:\RoboMaster\code\NE_RTOS_TEST\Components\motor\DM_Motor.h
  * @Description: 达妙电机不同发送模式相关定义
  */
@@ -47,13 +47,14 @@ typedef enum {
 typedef struct {
   DM_Motor_Err_e err_code; // 错误码 4bit
   uint8_t id; // 上位机设置的id 4bit
-  float pos; // 位置
-  float last_pos; // 上一次位置, 用于计算累计位置
-  float total_pos; // 累计位置
-  float spd; // 速度
-  float torq; // 力矩
+  float pos_rad; // 位置 单位: 弧度
+  float spd_radps; // 速度 单位: 弧度每秒
+  float torq_nm; // 力矩 单位: 牛米
   float t_mos; // MOS温度 单位: ℃
   float t_rotor; // 转子温度 单位: ℃
+  
+  float last_pos_rad; // 上一次位置, 用于计算累计位置
+  float total_pos_rad; // 累计位置
 } DM_Motor_Measure_t;
 
 typedef struct _DM_Motor_t {
