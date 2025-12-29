@@ -2,7 +2,7 @@
  * @Author: Jiang Tianhang 1919524828@qq.com
  * @Date: 2025-10-29 12:12:13
  * @LastEditors: Jiang Tianhang 1919524828@qq.com
- * @LastEditTime: 2025-12-02 20:33:06
+ * @LastEditTime: 2025-12-02 20:42:00
  * @FilePath: \MDK-ARMd:\RoboMaster\code\NE_RTOS_TEST\Components\motor\DM_Motor.h
  * @Description: 达妙电机不同发送模式相关定义
  */
@@ -89,8 +89,6 @@ typedef struct _DM_Motor_t {
   BSP_CAN_TxInstance spd_tx_instance; // 速度模式发送实例
   DM_Motor_SPD_Data_u spd_mode_data_u; // 速度模式数据
 #endif
-
-  MotorCtrl_t ctrl; // 电机控制结构体
 
   void (*MotorRxCallback)(struct _DM_Motor_t *motor); // 电机接收回调函数
 } DM_Motor_t;

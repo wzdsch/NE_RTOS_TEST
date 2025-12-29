@@ -2,7 +2,7 @@
  * @Author: Jiang Tianhang 1919524828@qq.com
  * @Date: 2025-10-29 12:12:28
  * @LastEditors: Jiang Tianhang 1919524828@qq.com
- * @LastEditTime: 2025-12-02 20:36:09
+ * @LastEditTime: 2025-12-02 20:42:34
  * @FilePath: \MDK-ARMd:\RoboMaster\code\NE_RTOS_TEST\Components\motor\DM_Motor.c
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
@@ -55,7 +55,6 @@ void DM_Motor_Init(DM_Motor_t *const p_motor, CAN_HandleTypeDef *hcan, const uin
   BSP_CAN_Tx_Init(&p_motor->spd_tx_instance, hcan, p_motor->spd_mode_data_u.txd, id + DM_SPD_MODE_ID_BASE, CAN_ID_STD, 0x4, CAN_RTR_DATA);
   memset(&p_motor->spd_mode_data_u, 0, sizeof(p_motor->spd_mode_data_u));
 #endif
-  memset(&p_motor->ctrl, 0, sizeof(p_motor->ctrl));
 }
 
 // ----------------------------- 四个特殊控制帧 -----------------------------
