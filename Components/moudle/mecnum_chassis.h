@@ -9,7 +9,6 @@ typedef struct _ {
   DJI_Motor_t motor_lb;
   DJI_Motor_t motor_rb;
 
-  float 
 } mecnum_chassis_t;
 
 #endif

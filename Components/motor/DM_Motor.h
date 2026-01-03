@@ -2,7 +2,7 @@
  * @Author: Jiang Tianhang 1919524828@qq.com
  * @Date: 2025-10-29 12:12:13
  * @LastEditors: Jiang Tianhang 1919524828@qq.com
- * @LastEditTime: 2025-12-02 20:42:00
+ * @LastEditTime: 2026-01-02 17:13:37
  * @FilePath: \MDK-ARMd:\RoboMaster\code\NE_RTOS_TEST\Components\motor\DM_Motor.h
  * @Description: 达妙电机不同发送模式相关定义
  */
@@ -10,8 +10,8 @@
 #define DM_MOTOR_H
 
 #include "DM_Motor_typedef.h"
-#include "bsp_can.h"
-#include "motor_ctrl.h"
+#include "BSP_CAN.h"
+#include "MotorCtrl.h"
 
 #define DM_KP_MAX 500.0f
 #define DM_KP_MIN 0.0f
@@ -91,16 +91,25 @@ typedef struct _DM_Motor_t {
 #endif
 
   void (*MotorRxCallback)(struct _DM_Motor_t *motor); // 电机接收回调函数
+  void *p_owner_moudle; // 电机所属模块(底盘/云台/机械臂等)
 } DM_Motor_t;
 
-void DM_Motor_Init(DM_Motor_t *const p_motor, CAN_HandleTypeDef *hcan, const uint8_t id, const uint32_t mst_id,
-                   float PMAX, float VMAX, float TMAX, void (*MotorRxCallback)(struct _DM_Motor_t *motor));
+typedef struct {
+  CAN_HandleTypeDef *hcan;
+  uint8_t id; // 上位机中设置的发送id 4bit
+  uint32_t mst_id; // 上位机中设置的反馈id
+  float PMAX;
+  float VMAX;
+  float TMAX;
+  void (*MotorRxCallback)(struct _DM_Motor_t *);
+  void *p_owner_moudle; // 电机所属模块(底盘/云台/机械臂等)
+} DM_Motor_Init_t;
+
+void DM_Motor_Init(DM_Motor_t *const p_motor, DM_Motor_Init_t* init);
 
 void DM_Motor_ClearErr(DM_Motor_t *const p_motor);
 
 void DM_Motor_Disable(DM_Motor_t *const p_motor);
-
-void DM_Motor_Enable(DM_Motor_t *const p_motor);
 
 void DM_Motor_Enable(DM_Motor_t *const p_motor);
 

@@ -2,7 +2,7 @@
  * @Author: Jiang Tianhang 1919524828@qq.com
  * @Date: 2025-10-26 16:48:17
  * @LastEditors: Jiang Tianhang 1919524828@qq.com
- * @LastEditTime: 2025-11-21 18:17:14
+ * @LastEditTime: 2026-01-03 13:50:23
  * @FilePath: \MDK-ARMd:\RoboMaster\code\NE_RTOS_TEST\Components\bsp\bsp_can.c
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
@@ -177,11 +177,12 @@ static void BSP_CAN_Rx_FIFOxCallback(CAN_HandleTypeDef *hcan, uint32_t fifox)
     {
       if (hcan == gp_can_rx_instances[i]->p_can_handle && rx_header.StdId == gp_can_rx_instances[i]->rx_id)
       {
+        gp_can_rx_instances[i]->rx_len = rx_header.DLC;                      // 保存接收到的数据长度
+        memcpy(gp_can_rx_instances[i]->rx_buff, can_rx_buff, rx_header.DLC); // 消息拷贝到对应实例
+        
         // 若回调不为空就调用
         if (gp_can_rx_instances[i]->pCanRxCallback != NULL)
         {
-          gp_can_rx_instances[i]->rx_len = rx_header.DLC;                      // 保存接收到的数据长度
-          memcpy(gp_can_rx_instances[i]->rx_buff, can_rx_buff, rx_header.DLC); // 消息拷贝到对应实例
           gp_can_rx_instances[i]->pCanRxCallback(gp_can_rx_instances[i]);      // 触发回调进行数据解析和处理
         }
         break;

@@ -2,14 +2,14 @@
  * @Author: Jiang Tianhang 1919524828@qq.com
  * @Date: 2025-10-29 12:09:26
  * @LastEditors: Jiang Tianhang 1919524828@qq.com
- * @LastEditTime: 2025-11-15 12:08:19
+ * @LastEditTime: 2026-01-03 14:06:48
  * @FilePath: \MDK-ARMd:\RoboMaster\code\NE_RTOS_TEST\Components\motor\motor_common.c
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
-#include "motor_ctrl.h"
+#include "MOtorCtrl.h"
 #include "string.h"
 
-void MotorCtrl_Init(MotorCtrl_t *p_motor_ctrl, MotorCtrl_Mode_e ctrl_mode, uint32_t out_values, float max_out, void *p_owner_moudle)
+void MotorCtrl_Init(MotorCtrl_t *p_motor_ctrl, MotorCtrl_PidMode_e ctrl_mode, uint32_t out_values, float max_out, void *p_owner_moudle)
 {
   if (p_motor_ctrl == NULL)
   {
@@ -72,10 +72,6 @@ void MotorCtrl_InternalPid_Init(MotorCtrl_t *p_motor_ctrl, PID_MODE_e pid_mode, 
 
 float _MotorCtrl_PID_Calc(MotorCtrl_t *p_motor_ctrl)
 {
-  if (p_motor_ctrl == NULL)
-  {
-    return 0;
-  }
   // 单环使用内环
   if (p_motor_ctrl->ctrl_mode == MOTOR_CTRL_PID_INTERNAL) {
     PID_Calc(&p_motor_ctrl->pid_internal, *p_motor_ctrl->p_pid_int_fdb, p_motor_ctrl->set_target);
@@ -92,11 +88,6 @@ float _MotorCtrl_PID_Calc(MotorCtrl_t *p_motor_ctrl)
 
 void MotorCtrl_Calc(MotorCtrl_t *p_motor_ctrl)
 {
-  if (p_motor_ctrl == NULL)
-  {
-    return;
-  }
-
   if (p_motor_ctrl->state == MOTOR_CTRL_DISABLE)
   {
     // 注意: 电机为失能模式，并不会清零final_out, 而是在具体的电机类中发送失能数据
@@ -169,4 +160,28 @@ void MotorCtrl_Calc(MotorCtrl_t *p_motor_ctrl)
 
 void MotorCtrl_SetTarget(MotorCtrl_t *p_motor_ctrl, float target) {
   p_motor_ctrl->set_target = target;
+}
+
+void MotorCtrl_Enable(MotorCtrl_t *p_motor_ctrl) {
+  p_motor_ctrl->state = MOTOR_CTRL_ENABLE;
+}
+
+void MotorCtrl_Disable(MotorCtrl_t *p_motor_ctrl) {
+  p_motor_ctrl->state = MOTOR_CTRL_DISABLE;
+}
+
+void MotorCtrl_SetCustomCtrlAlgorithm(MotorCtrl_t *p_motor_ctrl, float (*pCustomCtrlAlgorithm)(struct _MotorCtrl_t *p_motor_ctrl)) {
+  p_motor_ctrl->pCustomCtrlAlgorithm = pCustomCtrlAlgorithm;
+}
+
+void MotorCtrl_SetPreProcess(MotorCtrl_t *p_motor_ctrl, float (*pPreProcess)(struct _MotorCtrl_t *p_motor_ctrl)) {
+  p_motor_ctrl->pPreProcess = pPreProcess;
+}
+
+void MotorCtrl_SetPostProcess(MotorCtrl_t *p_motor_ctrl, float (*pPostProcess)(struct _MotorCtrl_t *p_motor_ctrl)) {
+
+}
+
+void MotorCtrl_SetFeedForward(MotorCtrl_t *p_motor_ctrl, float (*FeedFwd)(MotorCtrl_t *p_motor_ctrl)) {
+  p_motor_ctrl->pFeedForward = FeedFwd;
 }

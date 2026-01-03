@@ -2,7 +2,7 @@
  * @Author: Jiang Tianhang 1919524828@qq.com
  * @Date: 2025-10-29 12:12:28
  * @LastEditors: Jiang Tianhang 1919524828@qq.com
- * @LastEditTime: 2025-12-02 20:42:34
+ * @LastEditTime: 2026-01-02 17:17:08
  * @FilePath: \MDK-ARMd:\RoboMaster\code\NE_RTOS_TEST\Components\motor\DM_Motor.c
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
@@ -17,42 +17,42 @@ uint8_t DM_MOTOR_SAVE_ZERO_POS_TXD[8] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xF
 
 void _DM_Motor_RxCallback(BSP_CAN_RxInstance *p_rx_instance);
 
-void DM_Motor_Init(DM_Motor_t *const p_motor, CAN_HandleTypeDef *hcan, const uint8_t id, const uint32_t mst_id,
-                   float PMAX, float VMAX, float TMAX, void (*MotorRxCallback)(struct _DM_Motor_t *motor))
+void DM_Motor_Init(DM_Motor_t *const p_motor, DM_Motor_Init_t* init)
 {
-  if (p_motor == NULL || hcan == NULL)
+  if (p_motor == NULL || init->hcan == NULL)
   {
     while (1)
     {
     }
   }
 
-  p_motor->id = id;
-  p_motor->mst_id = mst_id;
-  p_motor->hcan = hcan;
-  p_motor->MotorRxCallback = MotorRxCallback;
-  p_motor->PMAX = PMAX;
-  p_motor->VMAX = VMAX;
-  p_motor->TMAX = TMAX;
+  p_motor->id = init->id;
+  p_motor->mst_id = init->mst_id;
+  p_motor->hcan = init->hcan;
+  p_motor->MotorRxCallback = init->MotorRxCallback;
+  p_motor->PMAX = init->PMAX;
+  p_motor->VMAX = init->VMAX;
+  p_motor->TMAX = init->TMAX;
 
   p_motor->state = DM_MOTOR_STATE_ENABLE;
+  p_motor->p_owner_moudle = init->p_owner_moudle;
 
-  BSP_CAN_RxRegister(&p_motor->rx_instance, hcan, mst_id, p_motor, _DM_Motor_RxCallback);
+  BSP_CAN_RxRegister(&p_motor->rx_instance, p_motor->hcan, p_motor->mst_id, p_motor, _DM_Motor_RxCallback);
 
   memset(&p_motor->measure, 0, sizeof(p_motor->measure));
 
 #if DM_TX_USE_MIT_MODE == 1
-  BSP_CAN_Tx_Init(&p_motor->mit_tx_instance, hcan, p_motor->mit_mode_data.txd, id, CAN_ID_STD, 0x8, CAN_RTR_DATA);
+  BSP_CAN_Tx_Init(&p_motor->mit_tx_instance, p_motor->hcan, p_motor->mit_mode_data.txd, p_motor->id, CAN_ID_STD, 0x8, CAN_RTR_DATA);
   memset(&p_motor->mit_mode_data, 0, sizeof(p_motor->mit_mode_data));
 #endif
 
 #if DM_TX_USE_POS_SPD_MODE == 1
-  BSP_CAN_Tx_Init(&p_motor->pos_spd_tx_instance, hcan, p_motor->pos_spd_mode_data_u.txd, id + DM_POS_SPD_MODE_ID_BASE, CAN_ID_STD, 0x8, CAN_RTR_DATA);
+  BSP_CAN_Tx_Init(&p_motor->pos_spd_tx_instance, p_motor->hcan, p_motor->pos_spd_mode_data_u.txd, p_motor->id + DM_POS_SPD_MODE_ID_BASE, CAN_ID_STD, 0x8, CAN_RTR_DATA);
   memset(&p_motor->pos_spd_mode_data_u, 0, sizeof(p_motor->pos_spd_mode_data_u));
 #endif
 
 #if DM_TX_USE_SPD_MODE == 1
-  BSP_CAN_Tx_Init(&p_motor->spd_tx_instance, hcan, p_motor->spd_mode_data_u.txd, id + DM_SPD_MODE_ID_BASE, CAN_ID_STD, 0x4, CAN_RTR_DATA);
+  BSP_CAN_Tx_Init(&p_motor->spd_tx_instance, p_motor->hcan, p_motor->spd_mode_data_u.txd, p_motor->id + DM_SPD_MODE_ID_BASE, CAN_ID_STD, 0x4, CAN_RTR_DATA);
   memset(&p_motor->spd_mode_data_u, 0, sizeof(p_motor->spd_mode_data_u));
 #endif
 }

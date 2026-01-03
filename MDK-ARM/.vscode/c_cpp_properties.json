@@ -15,6 +15,7 @@
                 "d:\\RoboMaster\\code\\NE_RTOS_TEST\\Components\\bsp",
                 "d:\\RoboMaster\\code\\NE_RTOS_TEST\\Components\\motor",
                 "d:\\RoboMaster\\code\\NE_RTOS_TEST\\Components\\moudle",
+                "d:\\RoboMaster\\code\\NE_RTOS_TEST\\Middlewares\\ST\\ARM\\DSP\\Inc",
                 "D:\\DEV\\Embedded\\keil_v5\\ARM\\ARMCC\\include",
                 "D:\\DEV\\Embedded\\keil_v5\\ARM\\ARMCC\\include\\arm_linux",
                 "D:\\DEV\\Embedded\\keil_v5\\ARM\\ARMCC\\include\\arm_linux_compat",
@@ -24,7 +25,8 @@
                 "d:\\RoboMaster\\code\\NE_RTOS_TEST\\Core\\Src",
                 "d:\\RoboMaster\\code\\NE_RTOS_TEST\\Drivers\\STM32F4xx_HAL_Driver\\Src",
                 "d:\\RoboMaster\\code\\NE_RTOS_TEST\\Middlewares\\Third_Party\\FreeRTOS\\Source",
-                "d:\\RoboMaster\\code\\NE_RTOS_TEST\\Middlewares\\Third_Party\\FreeRTOS\\Source\\portable\\MemMang"
+                "d:\\RoboMaster\\code\\NE_RTOS_TEST\\Middlewares\\Third_Party\\FreeRTOS\\Source\\portable\\MemMang",
+                "d:\\RoboMaster\\code\\NE_RTOS_TEST\\Middlewares\\ST\\ARM\\DSP\\Lib"
             ],
             "defines": [
                 "USE_HAL_DRIVER",

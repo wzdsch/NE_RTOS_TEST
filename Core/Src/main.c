@@ -24,9 +24,10 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "motor_ctrl.h"
+#include "MotorCtrl.h"
 #include <stdint.h>
-#include "bsp_can.h"
+#include "BSP_CAN.h"
+#include "DJI_Motor.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -95,6 +96,7 @@ int main(void)
   MX_CAN2_Init();
   /* USER CODE BEGIN 2 */
   BSP_CAN_InitAll();
+	DJI_Motor_TxInitAll();
   /* USER CODE END 2 */
 
   /* Init scheduler */

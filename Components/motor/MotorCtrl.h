@@ -2,7 +2,7 @@
  * @Author: Jiang Tianhang 1919524828@qq.com
  * @Date: 2025-10-29 12:11:24
  * @LastEditors: Jiang Tianhang 1919524828@qq.com
- * @LastEditTime: 2025-11-15 12:28:35
+ * @LastEditTime: 2026-01-03 14:04:27
  * @FilePath: \MDK-ARMd:\RoboMaster\code\NE_RTOS_TEST\Components\motor\motor_common.h
  * @Description: 此模块为电机控制模块, 只负责数据的处理, 可用作处理电机数据的统一接口
  */
@@ -28,15 +28,15 @@ typedef enum
 
 typedef enum
 {
+  MOTOR_CTRL_PID_NONE, // 无
   MOTOR_CTRL_PID_INTERNAL, // 单闭环 (内环)
-  MOTOR_CTRL_PID_DOUBLE, // 双闭环
-  MOTOR_CTRL_CUSTOM      // 自定义控制算法
-} MotorCtrl_Mode_e;
+  MOTOR_CTRL_PID_DOUBLE // 双闭环
+} MotorCtrl_PidMode_e;
 
 typedef struct _MotorCtrl_t
 {
   MotorCtrl_State_e state; // 使能 / 失能, 这个参数表示是否计算
-  MotorCtrl_Mode_e ctrl_mode; // 控制模式 (单环/双环/自定义)
+  MotorCtrl_PidMode_e ctrl_mode; // 控制模式 (单环/双环/自定义)
 
   // pid结构体
   Pid_t pid_external; // 外环
@@ -67,7 +67,7 @@ typedef struct _MotorCtrl_t
   float max_out; // 最终总输出限幅(力矩)
   float final_out; // 最终输出
 
-  void *p_owner_moudle; // 所属模块指针
+  void *p_owner_moudle; // 所属模块指针(一般为电机)
 } MotorCtrl_t;
 
 /// @brief 电机控制初始化
@@ -75,8 +75,8 @@ typedef struct _MotorCtrl_t
 /// @param ctrl_mode 控制模式 (单环/双环/自定义)
 /// @param out_values 输出增益, 按位或连接 MOTOR_CTRL_OUT_PID, MOTOR_CTRL_OUT_CUSTOM, MOTOR_CTRL_OUT_FEEDFWD, MOTOR_CTRL_OUT_PREPROCESS, MOTOR_CTRL_OUT_POSTPROCESS
 /// @param max_out 
-/// @param p_owner_moudle 
-void MotorCtrl_Init(MotorCtrl_t *p_motor_ctrl, MotorCtrl_Mode_e ctrl_mode, uint32_t out_values, float max_out, void *p_owner_moudle);
+/// @param p_owner_moudle 所属模块指针(一般为电机)
+void MotorCtrl_Init(MotorCtrl_t *p_motor_ctrl, MotorCtrl_PidMode_e ctrl_mode, uint32_t out_values, float max_out, void *p_owner_moudle);
 
 /// @brief 双环pid外环初始化
 /// @param p_motor_ctrl 电机控制结构体指针
@@ -85,7 +85,7 @@ void MotorCtrl_Init(MotorCtrl_t *p_motor_ctrl, MotorCtrl_Mode_e ctrl_mode, uint3
 /// @param p_pid_data pid数据 数组 {Kp, Ki, Kd, out_limit, integral_limit}
 void MotorCtrl_ExternalPid_Init(MotorCtrl_t *p_motor_ctrl, PID_MODE_e pid_mode, float *p_ref, float p_pid_data[5]);
 
-/// @brief 双环pid外环初始化 / 单闭环pid初始化
+/// @brief 双环pid内环初始化 / 单闭环pid初始化
 /// @param p_motor_ctrl 电机控制结构体指针
 /// @param pid_mode pid模式 (位置式 / 增量式)
 /// @param p_ref 反馈值指针
@@ -120,5 +120,13 @@ void MotorCtrl_Calc(MotorCtrl_t *p_motor_ctrl);
 /// @param p_motor_ctrl 电机控制结构体指针
 /// @param target 目标值
 void MotorCtrl_SetTarget(MotorCtrl_t *p_motor_ctrl, float target);
+
+/// @brief 使能电机控制计算
+/// @param p_motor_ctrl 
+void MotorCtrl_Enable(MotorCtrl_t *p_motor_ctrl);
+
+/// @brief 失能电机控制计算
+/// @param p_motor_ctrl
+void MotorCtrl_Disable(MotorCtrl_t *p_motor_ctrl);
 
 #endif
