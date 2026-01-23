@@ -1,12 +1,16 @@
 /*
+ * @beforeAnnotation: 
+ * Copyright (c) 2026 by 
+ * """ The Robomaster team : NEXT-E from Xi'an University of Technology """
+ * All Rights Reserved. 
+ * 
  * @Author: Jiang Tianhang 1919524828@qq.com
  * @Date: 2025-10-26 16:48:17
  * @LastEditors: Jiang Tianhang 1919524828@qq.com
- * @LastEditTime: 2025-11-21 18:01:37
- * @FilePath: \MDK-ARMd:\RoboMaster\code\NE_RTOS_TEST\Components\bsp\bsp_can.h
- * @Description: 此模块为can的bsp封装，发送实例和接收实例分开，实现发送配置和注册接收的方式
+ * @LastEditTime: 2026-01-23 23:45:48
+ * @FilePath: \NE_RTOS_TEST\Components\bsp\bsp_can.h
+ * @Description: 
  */
-
 #ifndef BSP_CAN_H
 #define BSP_CAN_H
 
@@ -19,20 +23,23 @@
 #pragma pack(1) ////////////////////////////////////////////////////////////////////////
 typedef struct _TxInstance
 {
-    CAN_HandleTypeDef *p_can_handle; // can句柄
-    CAN_TxHeaderTypeDef tx_header; // 发送报头
-    uint32_t tx_id;                // 发送id
-    uint8_t* p_tx_buf;            // 外部发送缓存指针, 注意内存长度>=DLC, 并保证此参数的有效性
-    uint32_t tx_mailbox;           // 发送邮箱
+    CAN_HandleTypeDef *p_can_handle;  // can句柄
+    CAN_TxHeaderTypeDef tx_header;    // 发送报头
+    uint32_t tx_id;                   // 发送id
+    uint8_t* p_tx_buf;                // 外部发送缓存指针, 注意内存长度>=DLC, 并保证此参数的有效性
+    uint32_t tx_mailbox;              // 发送邮箱
 } BSP_CAN_TxInstance;
 
 typedef struct _RxInstance
 {
-  CAN_HandleTypeDef *p_can_handle; // can句柄
-  CAN_RxHeaderTypeDef rx_header; // 接收报头
-  uint32_t rx_id;                // 接收id
-  uint8_t rx_buff[8];            // 接收缓存, 最大为8个字节
-  uint8_t rx_len;                // 接收长度(字节), 可能为0-8
+  CAN_HandleTypeDef *p_can_handle;  // can句柄
+  CAN_RxHeaderTypeDef rx_header;    // 接收报头
+
+  // 注意: 扩展帧id为 stdid << 18 + extid
+  uint32_t rx_id;                   // 接收id
+  uint32_t IDE;                     // id类型 STD / EXT
+  uint8_t rx_buff[8];               // 接收缓存, 最大为8个字节
+  uint8_t rx_len;                   // 接收长度(字节), 可能为0-8
 
   // 接收的回调函数,用于解析接收到的数据, 参数为接收实例指针
   void (*pCanRxCallback)(struct _RxInstance *);
@@ -55,17 +62,16 @@ void BSP_CAN_InitAll(void);
 /// @param IDE id类型 STD / EXT
 /// @param DLC 发送长度(字节)
 /// @param RTR 数据类型 数据 / 遥控帧
-void BSP_CAN_Tx_Init(BSP_CAN_TxInstance *p_tx_instance, CAN_HandleTypeDef *hcan, uint8_t* p_buf, uint32_t tx_id,
-                     uint32_t IDE, uint32_t DLC, uint32_t RTR);
+void BSP_CAN_Tx_Init(BSP_CAN_TxInstance *p_tx_instance, CAN_HandleTypeDef *hcan, uint8_t* p_buf, uint32_t tx_id, uint32_t IDE, uint32_t DLC, uint32_t RTR);
 
-/// @brief 注册can接收实例, 注册后会自动接收数据和调用回调(目前只实现了StdID), 注册失败会卡死!
+/// @brief 注册can接收实例, 注册后会自动接收数据和调用回调, 注册失败会卡死!
 /// @param g_can_rx_instance 接收实例指针(注意: 此指针指向的结构体必须是全局变量, 否则可能会非法访问内存!)
 /// @param hcan can句柄
 /// @param rx_id 接收ID
 /// @param owner_moudle 所属模块指针
 /// @param can_rx_callback 回调函数
 void BSP_CAN_RxRegister(BSP_CAN_RxInstance *gp_can_rx_instance, CAN_HandleTypeDef *const p_hcan,
-                        const uint32_t rx_id, void *const owner_moudle,
+                        const uint32_t rx_id, const uint32_t IDE, void *const owner_moudle,
                         void (*pCanRxCallback)(struct _RxInstance *));
 
 /// @brief 设置CAN发送实例的发送数据长度

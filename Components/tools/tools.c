@@ -1,10 +1,15 @@
 /*
+ * @beforeAnnotation: 
+ * Copyright (c) 2026 by 
+ * """ The Robomaster team : NEXT-E from Xi'an University of Technology """
+ * All Rights Reserved. 
+ * 
  * @Author: Jiang Tianhang 1919524828@qq.com
  * @Date: 2025-11-18 18:34:20
  * @LastEditors: Jiang Tianhang 1919524828@qq.com
- * @LastEditTime: 2025-11-18 18:36:28
- * @FilePath: \MDK-ARMd:\RoboMaster\code\NE_RTOS_TEST\Components\tools\tools.c
- * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
+ * @LastEditTime: 2026-01-23 23:44:58
+ * @FilePath: \NE_RTOS_TEST\Components\tools\tools.c
+ * @Description: 
  */
 #include "tools.h"
 

@@ -1,12 +1,17 @@
 /*
+ * @beforeAnnotation: 
+ * Copyright (c) 2026 by 
+ * """ The Robomaster team : NEXT-E from Xi'an University of Technology """
+ * All Rights Reserved. 
+ * 
  * @Author: Jiang Tianhang 1919524828@qq.com
  * @Date: 2025-10-29 12:09:26
  * @LastEditors: Jiang Tianhang 1919524828@qq.com
- * @LastEditTime: 2026-01-03 14:06:48
- * @FilePath: \MDK-ARMd:\RoboMaster\code\NE_RTOS_TEST\Components\motor\motor_common.c
- * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
+ * @LastEditTime: 2026-01-23 23:46:00
+ * @FilePath: \NE_RTOS_TEST\Components\motor\MotorCtrl.c
+ * @Description: 
  */
-#include "MOtorCtrl.h"
+#include "MotorCtrl.h"
 #include "string.h"
 
 void MotorCtrl_Init(MotorCtrl_t *p_motor_ctrl, MotorCtrl_PidMode_e ctrl_mode, uint32_t out_values, float max_out, void *p_owner_moudle)

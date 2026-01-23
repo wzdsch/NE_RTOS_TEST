@@ -1,3 +1,16 @@
+/*
+ * @beforeAnnotation: 
+ * Copyright (c) 2026 by 
+ * """ The Robomaster team : NEXT-E from Xi'an University of Technology """
+ * All Rights Reserved. 
+ * 
+ * @Author: Jiang Tianhang 1919524828@qq.com
+ * @Date: 2025-10-26 17:22:39
+ * @LastEditors: Jiang Tianhang 1919524828@qq.com
+ * @LastEditTime: 2026-01-23 23:44:18
+ * @FilePath: \NE_RTOS_TEST\Components\tools\double_buffer.c
+ * @Description: 
+ */
 #include "double_buffer.h"
 #include <stdlib.h>
 #include <string.h>

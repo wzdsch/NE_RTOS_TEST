@@ -1,10 +1,15 @@
 /*
+ * @beforeAnnotation: 
+ * Copyright (c) 2026 by 
+ * """ The Robomaster team : NEXT-E from Xi'an University of Technology """
+ * All Rights Reserved. 
+ * 
  * @Author: Jiang Tianhang 1919524828@qq.com
  * @Date: 2025-12-29 10:35:45
  * @LastEditors: Jiang Tianhang 1919524828@qq.com
- * @LastEditTime: 2026-01-02 19:36:39
- * @FilePath: \MDK-ARMd:\RoboMaster\code\NE_RTOS_TEST\Components\moudle\arm.c
- * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
+ * @LastEditTime: 2026-01-23 23:48:39
+ * @FilePath: \NE_RTOS_TEST\Components\moudle\arm.c
+ * @Description: 
  */
 #include "arm.h"
 
@@ -29,8 +34,8 @@ void Arm_Init(Arm_t *arm, ArmInit_t* init) {
 
   DJI_Motor_Init(&arm->pitch2_3508, &init->pitch2_3508_init);
   MotorCtrl_Init(&arm->pitch2_ctrl, MOTOR_CTRL_PID_DOUBLE, MOTOR_CTRL_OUT_PID | MOTOR_CTRL_OUT_FEEDFWD, 16384.0f, &arm->pitch2_3508);
-  MotorCtrl_ExternalPid_Init(&arm->pitch2_ctrl, PID_POSITION, &arm->pitch2_3508.measure.pos_total_ecd_f, PITCH2_3508_EXT_PID_DATA);
-  MotorCtrl_InternalPid_Init(&arm->pitch2_ctrl, PID_POSITION, &arm->pitch2_3508.measure.spd_rpm_f, PITCH2_3508_INT_PID_DATA);
+  MotorCtrl_ExternalPid_Init(&arm->pitch2_ctrl, PID_POSITION, &arm->pitch2_3508.processed_measure.pos_total_ecd_f, PITCH2_3508_EXT_PID_DATA);
+  MotorCtrl_InternalPid_Init(&arm->pitch2_ctrl, PID_POSITION, &arm->pitch2_3508.processed_measure.spd_rpm_f, PITCH2_3508_INT_PID_DATA);
   MotorCtrl_SetFeedForward(&arm->pitch2_ctrl, _Arm_Pitch2_GravertyFeedFwd);
   
   DM_Motor_Init(&arm->yaw2_4310, &init->yaw2_4310_init);

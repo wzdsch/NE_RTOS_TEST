@@ -1,10 +1,15 @@
 /*
+ * @beforeAnnotation: 
+ * Copyright (c) 2026 by 
+ * """ The Robomaster team : NEXT-E from Xi'an University of Technology """
+ * All Rights Reserved. 
+ * 
  * @Author: Jiang Tianhang 1919524828@qq.com
  * @Date: 2025-11-18 12:34:54
  * @LastEditors: Jiang Tianhang 1919524828@qq.com
- * @LastEditTime: 2025-12-02 20:34:38
- * @FilePath: \MDK-ARMd:\RoboMaster\code\NE_RTOS_TEST\Components\motor\DM_Motor_typedef.h
- * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
+ * @LastEditTime: 2026-01-23 23:48:17
+ * @FilePath: \NE_RTOS_TEST\Components\motor\DM_Motor_typedef.h
+ * @Description: 
  */
 #ifndef DM_MOTOR_TYPEDEF_H
 #define DM_MOTOR_TYPEDEF_H
@@ -56,10 +61,10 @@ typedef struct {
   float spd_radps;
 } _DM_Motor_POS_SPD_CtrlData_t;
 
-typedef union {
+typedef struct {
   uint8_t txd[8];
   _DM_Motor_POS_SPD_CtrlData_t ctrl_data;
-} DM_Motor_POS_SPD_Data_u;
+} DM_Motor_POS_SPD_Data_t;
 #pragma pack()
 
 #endif
@@ -67,10 +72,10 @@ typedef union {
 #if DM_TX_USE_SPD_MODE == 1
 // -------------------- SPD ------------------- //
 
-typedef union {
+typedef struct {
   uint8_t txd[4];
   float spd_radps;
-} DM_Motor_SPD_Data_u;
+} DM_Motor_SPD_Data_t;
 
 #endif
 

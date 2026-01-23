@@ -1,10 +1,15 @@
 /*
+ * @beforeAnnotation: 
+ * Copyright (c) 2026 by 
+ * """ The Robomaster team : NEXT-E from Xi'an University of Technology """
+ * All Rights Reserved. 
+ * 
  * @Author: Jiang Tianhang 1919524828@qq.com
  * @Date: 2025-10-29 12:11:24
  * @LastEditors: Jiang Tianhang 1919524828@qq.com
- * @LastEditTime: 2026-01-03 14:04:27
- * @FilePath: \MDK-ARMd:\RoboMaster\code\NE_RTOS_TEST\Components\motor\motor_common.h
- * @Description: 此模块为电机控制模块, 只负责数据的处理, 可用作处理电机数据的统一接口
+ * @LastEditTime: 2026-01-23 23:46:12
+ * @FilePath: \NE_RTOS_TEST\Components\motor\MotorCtrl.h
+ * @Description: 
  */
 #ifndef MOTOR_CTRL_H
 #define MOTOR_CTRL_H

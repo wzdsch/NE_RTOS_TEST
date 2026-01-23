@@ -20,6 +20,8 @@
 #include "main.h"
 #include "cmsis_os.h"
 #include "can.h"
+#include "dma.h"
+#include "usart.h"
 #include "gpio.h"
 
 /* Private includes ----------------------------------------------------------*/
@@ -92,8 +94,10 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  MX_DMA_Init();
   MX_CAN1_Init();
   MX_CAN2_Init();
+  MX_USART3_UART_Init();
   /* USER CODE BEGIN 2 */
   BSP_CAN_InitAll();
 	DJI_Motor_TxInitAll();
@@ -102,6 +106,19 @@ int main(void)
   /* Init scheduler */
   osKernelInitialize();  /* Call init function for freertos objects (in cmsis_os2.c) */
   MX_FREERTOS_Init();
+  // 
+  // CAN_FilterTypeDef can_filter_conf;
+  // can_filter_conf.FilterBank = 13;
+  // can_filter_conf.FilterMode = CAN_FILTERMODE_IDMASK;
+  // can_filter_conf.FilterScale = CAN_FILTERSCALE_32BIT;
+  // can_filter_conf.FilterIdHigh = 0x0000;
+  // can_filter_conf.FilterIdLow = 0x0000;
+  // can_filter_conf.FilterMaskIdHigh = 0x0000;
+  // can_filter_conf.FilterMaskIdLow = 0x0000;
+  // can_filter_conf.FilterFIFOAssignment = CAN_FILTER_FIFO0;
+  // can_filter_conf.FilterActivation = ENABLE;
+  // can_filter_conf.SlaveStartFilterBank = 14;
+  // HAL_CAN_ConfigFilter(&hcan1, &can_filter_conf);
 
   /* Start scheduler */
   osKernelStart();
