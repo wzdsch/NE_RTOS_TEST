@@ -814,9 +814,14 @@
               <FilePath>..\Components\moudle\arm.c</FilePath>
             </File>
             <File>
-              <FileName>can_multi_comm.c</FileName>
+              <FileName>can_custom_comm.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\Components\moudle\can_multi_comm.c</FilePath>
+              <FilePath>..\Components\moudle\can_custom_comm.c</FilePath>
+            </File>
+            <File>
+              <FileName>push_rod.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Components\moudle\push_rod.c</FilePath>
             </File>
           </Files>
         </Group>

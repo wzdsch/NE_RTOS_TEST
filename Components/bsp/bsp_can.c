@@ -166,11 +166,11 @@ void BSP_CAN_Tx_Init(BSP_CAN_TxInstance *p_tx_instance, CAN_HandleTypeDef *p_hca
 uint8_t BSP_CAN_Transmit(BSP_CAN_TxInstance *const tx_instance)
 {
   static uint32_t busy_count;
-  if (HAL_CAN_AddTxMessage(tx_instance->p_can_handle, &tx_instance->tx_header, tx_instance->p_tx_buf, &tx_instance->tx_mailbox) != HAL_OK)
+  while (HAL_CAN_AddTxMessage(tx_instance->p_can_handle, &tx_instance->tx_header, tx_instance->p_tx_buf, &tx_instance->tx_mailbox) != HAL_OK)
   {
     // 发送失败就直接返回，不采用阻塞发送
     busy_count++;
-    return 0;
+    // return 0;
   }
   return 1; // 发送成功
 }

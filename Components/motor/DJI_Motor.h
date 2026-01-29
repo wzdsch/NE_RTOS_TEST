@@ -7,7 +7,7 @@
  * @Author: Jiang Tianhang 1919524828@qq.com
  * @Date: 2025-10-29 12:12:02
  * @LastEditors: Jiang Tianhang 1919524828@qq.com
- * @LastEditTime: 2026-01-23 23:47:36
+ * @LastEditTime: 2026-01-28 22:55:23
  * @FilePath: \NE_RTOS_TEST\Components\motor\DJI_Motor.h
  * @Description: 
  */
@@ -44,7 +44,7 @@ typedef enum
 /// @brief 大疆电机方向枚举
 typedef enum {
   DJI_MOTOR_DIR_NORMAL = 0, // 默认方向
-  DJI_MOTOR_REVERSE         // 反向
+  DJI_MOTOR_DIR_REVERSE         // 反向
 } DJI_Motor_Dir_e;
 
 /// @brief 大疆电机原始接收数据结构体
@@ -100,10 +100,11 @@ typedef struct _DJI_Motor_t {
 /// @brief 大疆电机初始化结构体
 typedef struct {
   CAN_HandleTypeDef *hcan;  // can句柄
+  DJI_Motor_Type_e type;    // 电机类型
   DJI_Motor_TxID_e tx_id;   // 发送ID
   uint32_t rx_id;           // 接收ID
-  DJI_Motor_Type_e type;    // 电机类型
-  
+  DJI_Motor_Dir_e dir;      // 电机方向
+  int16_t zero_offset;      // 电机编码器零点偏移
   void (*const MotorRxCallback)(DJI_Motor_t *); // 电机接收回调函数
   void *p_owner_moudle; // 电机所属模块(云台、底盘等), 用于前馈等函数
 } DJI_Motor_Init_t;

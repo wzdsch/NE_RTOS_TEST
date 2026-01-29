@@ -7,7 +7,7 @@
  * @Author: Jiang Tianhang 1919524828@qq.com
  * @Date: 2025-12-29 10:35:45
  * @LastEditors: Jiang Tianhang 1919524828@qq.com
- * @LastEditTime: 2026-01-23 23:48:57
+ * @LastEditTime: 2026-01-29 02:48:06
  * @FilePath: \NE_RTOS_TEST\Components\moudle\arm.h
  * @Description: 
  */
@@ -34,6 +34,8 @@ typedef struct {
   DM_Motor_Init_t pitch1_8009p_init;
   DJI_Motor_Init_t pitch2_3508_init;
   DM_Motor_Init_t yaw2_4310_init;
+  DJI_Motor_Init_t end1_2006_init; // 末端执行器1
+  DJI_Motor_Init_t end2_2006_init; // 末端执行器2
 } ArmInit_t;
 
 typedef struct {
@@ -52,11 +54,18 @@ typedef struct {
 
   DM_Motor_t yaw2_4310;
   MotorCtrl_t yaw2_ctrl;
+
+  DJI_Motor_t end1_2006;
+  MotorCtrl_t end1_ctrl;
+
+  DJI_Motor_t end2_2006;
+  MotorCtrl_t end2_ctrl;
 } Arm_t;
 
 void Arm_Init(Arm_t *arm, ArmInit_t *init);
 
-void Arm_SetTarget(Arm_t *arm, ArmLoad_t load, float yaw1_target, float pitch1_target, float pitch2_target, float yaw2_target);
+void Arm_SetTarget(Arm_t *arm, ArmLoad_t load, float yaw1_target, float pitch1_target, float pitch2_target, float yaw2_target, \
+                   float end1_target, float end2_target);
 
 void Arm_Enable(Arm_t *arm);
 

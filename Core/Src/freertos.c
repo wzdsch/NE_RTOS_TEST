@@ -28,6 +28,7 @@
 #include "DJI_Motor.h"
 #include "DM_Motor.h"
 #include "arm.h"
+#include "remote_receive.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -51,13 +52,15 @@ osThreadId_t motorTaskHandle;
 
 float set = 0.f;
 
-DM_Motor_t J8009P;
+// DM_Motor_t J8009P;
 
 // DJI_Motor_t M3508;
 // MotorCtrl_t M3508Ctrl;
 
-// Arm_t arm;
-// float yaw1 = .0f, pitch1 = .0f, yaw2 = .0f, pitch2 = .0f;
+Arm_t arm;
+float yaw1 = -0.36f, pitch1 = -0.8f, yaw2 = 1.13f, pitch2 = .0f, end_1 = 0.f, end_2 = 0.f;
+float yaw1_step = 0.000005f, pitch1_step = 0.000005f, pitch2_step = 0.2f, yaw2_step = 0.000005f, \
+      end_pitch_step = 0.4f, end_yaw_step = 0.8f;
 
 // BSP_CAN_RxInstance can_rx_instance;
 /* USER CODE END Variables */
@@ -140,113 +143,113 @@ void StartDefaultTask(void *argument)
 /* USER CODE BEGIN Application */
 void MotorTask(void *argument)
 {
-  // // DM
-  // DM_Motor_Init(&J8009P, &hcan1, 0x01, 0x21, 12.5f, 45.f, 54.f, NULL);
-  // DM_Motor_MIT_SetPD(&J8009P, 160.f, 3.f);
-  // // DM_Motor_POS_SPD_SetSpd(&J8009P, 40.f);
-  // DM_Motor_Enable(&J8009P);
-  // // DM_Motor_SPD_SetSpd(&J8009P, set);
-  // while (1)
-  // {
-  //   // DM_Motor_POS_SPD_SetPos(&J8009P, set_pos);
-  //   DM_Motor_MIT_SetPos(&J8009P, set);
-  //   DM_Motor_MIT_Send(&J8009P);
-  //   // DM_Motor_SPD_SetSpd(&J8009P, 10.f);
-  //   // DM_Motor_SPD_Send(&J8009P);
-  //   osDelay(1);
-  //   pvPortMalloc(256);
-  // }
+  ArmInit_t arm_init = {
+    .yaw1_8009p_init = {
+      .hcan = &hcan1,
+      .id = 0x12,
+      .mst_id = 0x22,
+      .PMAX = 12.5f,
+      .VMAX = 45.f,
+      .TMAX = 54.f,
+      .dir = DM_MOTOR_DIR_NORMAL,
+      .zero_offset_rad = 0.f,
+      .MotorRxCallback = NULL,
+      .p_owner_moudle = &arm
+    },
+    .pitch1_8009p_init = {
+      .hcan = &hcan1,
+      .id = 0x11,
+      .mst_id = 0x21,
+      .PMAX = 12.5f,
+      .VMAX = 45.f,
+      .TMAX = 54.f,
+      .dir = DM_MOTOR_DIR_NORMAL,
+      .zero_offset_rad = 0.f,
+      .MotorRxCallback = NULL,
+      .p_owner_moudle = &arm
+    },
+    .pitch2_3508_init = {
+      .hcan = &hcan1,
+      .tx_id = DJI_MOTOR_TX_200,
+      .rx_id = 0x203,
+      .type = DJI_MOTOR_TYPE_M3508,
+      .dir = DJI_MOTOR_DIR_NORMAL,
+      .zero_offset = 0,
+      .MotorRxCallback = NULL,
+      .p_owner_moudle = &arm
+    },
+    .yaw2_4310_init = {
+      .hcan = &hcan1,
+      .id = 0x13,
+      .mst_id = 0x23,
+      .PMAX = 12.5f,
+      .VMAX = 45.f,
+      .TMAX = 54.f,
+      .dir = DM_MOTOR_DIR_NORMAL,
+      .zero_offset_rad = 0.f,
+      .MotorRxCallback = NULL,
+      .p_owner_moudle = &arm
+    },
+    .end1_2006_init = {
+      .hcan = &hcan1,
+      .tx_id = DJI_MOTOR_TX_200,
+      .rx_id = 0x201,
+      .type = DJI_MOTOR_TYPE_M2006,
+      .dir = DJI_MOTOR_DIR_NORMAL,
+      .zero_offset = 0,
+      .MotorRxCallback = NULL,
+      .p_owner_moudle = &arm
+    },
+    .end2_2006_init = {
+      .hcan = &hcan1,
+      .tx_id = DJI_MOTOR_TX_200,
+      .rx_id = 0x202,
+      .type = DJI_MOTOR_TYPE_M2006,
+      .dir = DJI_MOTOR_DIR_NORMAL,
+      .zero_offset = 0,
+      .MotorRxCallback = NULL,
+      .p_owner_moudle = &arm
+    }
+  };
+  Arm_Init(&arm, &arm_init);
+  while(1)
+  {
+    uint32_t start_tick = osKernelGetTickCount();
+    if (FSI6Data.right_ch2 == FSI6_CHANNEL_MIN) {
+      Arm_Disable(&arm);
+    } else if (FSI6Data.right_ch2 == FSI6_CHANNEL_MID) { // 使能 + 计算
+      Arm_Enable(&arm);
+      Arm_SetTarget(&arm, ARM_LOAD_NONE, yaw1, pitch1, pitch2, yaw2, end_1, end_2);
+      Arm_Calc(&arm);
+    } else if (FSI6Data.right_ch2 == FSI6_CHANNEL_MAX) { // 使能 + 计算 + 发送
 
-  // // DJI
-  // DJI_Motor_Init_t M3508_init = {.hcan = &hcan1, .rx_id = 0x202, .tx_id = DJI_MOTOR_TX_200, .type = DJI_MOTOR_TYPE_M3508, .MotorRxCallback = NULL, .p_owner_moudle = NULL};
-  // DJI_Motor_Init(&M3508, &M3508_init);
-  // DJI_Motor_Enable(&M3508);
-  // MotorCtrl_Init(&M3508Ctrl, MOTOR_CTRL_PID_INTERNAL, MOTOR_CTRL_OUT_PID, 16384, NULL);
+      // ------ enable logical ------
 
-  // float M3508_PID_INT[5] = {5.0f, 0.1f, .0f, 16384.0f, 5000.0f};
-  // MotorCtrl_InternalPid_Init(&M3508Ctrl, PID_POSITION, &M3508.measure.spd_rpm_f, M3508_PID_INT);
-  // MotorCtrl_Enable(&M3508Ctrl);
+      if (FSI6Data.right_ch1 == FSI6_CHANNEL_MIN) {
+        yaw1 -= (FSI6Data.left_x - 1024.f) * yaw1_step;
+        pitch1 += (FSI6Data.left_y - 1024.f) * pitch1_step;
+        pitch2 -= (FSI6Data.right_y - 1024.f) * pitch2_step;
+        yaw2 -= (FSI6Data.right_x - 1024.f) * yaw2_step;
+      } else if (FSI6Data.right_ch1 == FSI6_CHANNEL_MAX) {
+        end_1 += (FSI6Data.right_x - 1024.f) * end_yaw_step;
+        end_2 += (FSI6Data.right_x - 1024.f) * end_yaw_step;
+        end_1 += (FSI6Data.right_y - 1024.f) * end_pitch_step;
+        end_2 -= (FSI6Data.right_y - 1024.f) * end_pitch_step;
+      }
 
-  // while (1) {
-  //   MotorCtrl_SetTarget(&M3508Ctrl, set);
-  //   MotorCtrl_Calc(&M3508Ctrl);
-  //   DJI_Motor_SetCmd(&M3508, M3508Ctrl.final_out);
-  //   DJI_Motor_Transmit(&hcan1, DJI_MOTOR_TX_200);
-  //   osDelay(1);
-  // }
+      Arm_SetTarget(&arm, ARM_LOAD_NONE, yaw1, pitch1, pitch2, yaw2, end_1, end_2);
+      Arm_Calc(&arm);
 
-  //   // Arm
-  //   ArmInit_t arm_init = {
-  //     .yaw1_8009p_init = {
-  //       .hcan = &hcan1,
-  //       .id = 0x11,
-  //       .mst_id = 0x21,
-  //       .PMAX = 12.5f,
-  //       .VMAX = 45.f,
-  //       .TMAX = 54.f,
-  //       .MotorRxCallback = NULL,
-  //       .p_owner_moudle = &arm
-  //     },
-  //     .pitch1_8009p_init = {
-  //       .hcan = &hcan1,
-  //       .id = 0x12,
-  //       .mst_id = 0x22,
-  //       .PMAX = 12.5f,
-  //       .VMAX = 45.f,
-  //       .TMAX = 54.f,
-  //       .MotorRxCallback = NULL,
-  //       .p_owner_moudle = &arm
-  //     },
-  //     .pitch2_3508_init = {
-  //       .hcan = &hcan1,
-  //       .tx_id = DJI_MOTOR_TX_200,
-  //       .rx_id = 0x202,
-  //       .type = DJI_MOTOR_TYPE_M3508,
-  //       .MotorRxCallback = NULL,
-  //       .p_owner_moudle = &arm
-  //     },
-  //     .yaw2_4310_init = {
-  //       .hcan = &hcan1,
-  //       .id = 0x15,
-  //       .mst_id = 0x25,
-  //       .PMAX = 12.5f,
-  //       .VMAX = 30.f,
-  //       .TMAX = 10.f,
-  //       .MotorRxCallback = NULL,
-  //       .p_owner_moudle = &arm
-  //     }
-  //   };
-  //   Arm_Init(&arm, &arm_init);
-  // 	DM_Motor_MIT_SetPD(&arm.yaw1_8009p, 2.f, .2f);
-  // 	DM_Motor_MIT_SetPD(&arm.pitch1_8009p, 2.f, .2f);
-  // 	DM_Motor_MIT_SetPD(&arm.yaw2_4310, 2.f, .2f);
-  //   Arm_Enable(&arm);
-  //   while (1)
-  //   {
-  //     Arm_SetTarget(&arm, ARM_LOAD_NONE, yaw1, pitch1, pitch2, yaw2);
-  //     Arm_Calc(&arm);
-
-  //     DJI_Motor_Transmit(&hcan1, DJI_MOTOR_TX_200);
-  // 		osDelay(1);
-  //     DM_Motor_MIT_Send(&arm.yaw1_8009p);
-  // 		osDelay(1);
-  //     DM_Motor_MIT_Send(&arm.pitch1_8009p);
-  // 		osDelay(1);
-  //     DM_Motor_MIT_Send(&arm.yaw2_4310);
-  //     osDelay(1);
-  //   }
-
-  // can
-  // BSP_CAN_RxRegister(&can_rx_instance, &hcan1, 0x48faaaa, CAN_ID_EXT, NULL, NULL);
-  // BSP_CAN_TxInstance can_tx_instance;
-  // uint8_t tx_data[8] = {0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff, 0x11, 0x22};
-  // BSP_CAN_Tx_Init(&can_tx_instance, &hcan1, tx_data, 0x148f6666, CAN_ID_EXT, 0x08, CAN_RTR_DATA);
-  // while (1)
-  // {
-  //   while (HAL_CAN_AddTxMessage(can_tx_instance.p_can_handle, &can_tx_instance.tx_header, can_tx_instance.p_tx_buf, NULL) != HAL_OK)
-  //     ;
-  //   osDelay(10);
-  // }
+      // 发送
+      DJI_Motor_GroupTransmit(&hcan1, DJI_MOTOR_TX_200);
+      DM_Motor_MIT_Send(&arm.yaw1_8009p);
+      DM_Motor_MIT_Send(&arm.pitch1_8009p);
+      DM_Motor_MIT_Send(&arm.yaw2_4310);
+    } else {
+      Arm_Disable(&arm);
+    }
+    osDelayUntil(start_tick + 2);
+  }
 }
 
 /* USER CODE END Application */

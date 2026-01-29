@@ -30,6 +30,8 @@
 #include <stdint.h>
 #include "BSP_CAN.h"
 #include "DJI_Motor.h"
+// #include "bsp_wbus.h"
+#include "remote_receive.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -101,6 +103,8 @@ int main(void)
   /* USER CODE BEGIN 2 */
   BSP_CAN_InitAll();
 	DJI_Motor_TxInitAll();
+  // W_BUS_Init();
+  FSI6_BUS_IDLEHandler_Init();
   /* USER CODE END 2 */
 
   /* Init scheduler */
