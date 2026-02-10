@@ -7,8 +7,8 @@
  * @Author: Jiang Tianhang 1919524828@qq.com
  * @Date: 2025-11-16 18:39:25
  * @LastEditors: Jiang Tianhang 1919524828@qq.com
- * @LastEditTime: 2026-01-23 23:47:10
- * @FilePath: \NE_RTOS_TEST\Components\bsp\bsp_can.c
+ * @LastEditTime: 2026-02-05 18:58:37
+ * @FilePath: \MDK-ARMd:\RoboMaster\code\NE_RTOS_TEST\Components\bsp\bsp_can.c
  * @Description: 
  */
 #include "bsp_can.h"
@@ -78,7 +78,7 @@ void BSP_CAN_InitAll(void)
 
 void BSP_CAN_RxRegister(BSP_CAN_RxInstance *gp_can_rx_instance, CAN_HandleTypeDef *const hcan,
                         const uint32_t rx_id, const uint32_t IDE, void *const owner_moudle,
-                        void (*pCanRxCallback)(struct _RxInstance *))
+                        void (*pCanRxCallback)(BSP_CAN_RxInstance *))
 {
   // 超过最大负载，卡死
   if (g_can_rx_instance_idx >= BSP_CAN_MAX_REGISTER_CNT)
@@ -110,11 +110,11 @@ void BSP_CAN_RxRegister(BSP_CAN_RxInstance *gp_can_rx_instance, CAN_HandleTypeDe
   gp_can_rx_instances[g_can_rx_instance_idx++] = gp_can_rx_instance; // 将实例保存到can_instance中
 }
 
-void BSP_CAN_Tx_Init(BSP_CAN_TxInstance *p_tx_instance, CAN_HandleTypeDef *p_hcan, uint8_t* p_buf, uint32_t tx_id, \
+void BSP_CAN_Tx_Init(BSP_CAN_TxInstance *p_tx_instance, CAN_HandleTypeDef *p_hcan, uint32_t tx_id, \
                      uint32_t IDE, uint32_t DLC, uint32_t RTR)
 {
   // 参数校验
-  if (p_tx_instance == NULL || p_hcan == NULL || p_buf == NULL) {
+  if (p_tx_instance == NULL || p_hcan == NULL) {
     while (1) {
       // 参数错误
     }
@@ -140,7 +140,7 @@ void BSP_CAN_Tx_Init(BSP_CAN_TxInstance *p_tx_instance, CAN_HandleTypeDef *p_hca
 
   p_tx_instance->p_can_handle = p_hcan; // 设置can句柄
   p_tx_instance->tx_id = tx_id;     // 设置发送id
-  p_tx_instance->p_tx_buf = p_buf; // 设置发送缓存
+  memset(p_tx_instance->tx_buf, 0, 8); // 清空发送缓存
 
   // 标准帧id共11位
   if (IDE == CAN_ID_STD) {
@@ -148,14 +148,8 @@ void BSP_CAN_Tx_Init(BSP_CAN_TxInstance *p_tx_instance, CAN_HandleTypeDef *p_hca
   }
 
   // 扩展帧id共29位
-  else if (IDE == CAN_ID_EXT) {
-    p_tx_instance->tx_header.ExtId = tx_id & 0x1FFFFFFF; // 29 bits
-  }
-
   else {
-    while (1) {
-      // 参数错误
-    }
+    p_tx_instance->tx_header.ExtId = tx_id & 0x1FFFFFFF; // 29 bits
   }
 
   p_tx_instance->tx_header.IDE = IDE;
@@ -166,11 +160,11 @@ void BSP_CAN_Tx_Init(BSP_CAN_TxInstance *p_tx_instance, CAN_HandleTypeDef *p_hca
 uint8_t BSP_CAN_Transmit(BSP_CAN_TxInstance *const tx_instance)
 {
   static uint32_t busy_count;
-  while (HAL_CAN_AddTxMessage(tx_instance->p_can_handle, &tx_instance->tx_header, tx_instance->p_tx_buf, &tx_instance->tx_mailbox) != HAL_OK)
+  if (HAL_CAN_AddTxMessage(tx_instance->p_can_handle, &tx_instance->tx_header, tx_instance->tx_buf, &tx_instance->tx_mailbox) != HAL_OK)
   {
     // 发送失败就直接返回，不采用阻塞发送
     busy_count++;
-    // return 0;
+    return 0;
   }
   return 1; // 发送成功
 }
@@ -196,12 +190,12 @@ inline void BSP_CAN_SetTxID(BSP_CAN_TxInstance *p_tx_instance, uint32_t tx_id) {
 }
 
 inline void BSP_CAN_SetTxBuf(BSP_CAN_TxInstance *p_tx_instance, uint8_t *const p_buf) {
-  p_tx_instance->p_tx_buf = p_buf;
+  memcpy(p_tx_instance->tx_buf, p_buf, p_tx_instance->tx_header.DLC);
 }
 
 static void BSP_CAN_Rx_FIFOxCallback(CAN_HandleTypeDef *hcan, uint32_t fifox)
 {
-  static CAN_RxHeaderTypeDef rx_header;
+  CAN_RxHeaderTypeDef rx_header;
   uint8_t can_rx_buff[8];
   while (HAL_CAN_GetRxFifoFillLevel(hcan, fifox)) // 阻塞获取所有数据
   {

@@ -7,8 +7,8 @@
  * @Author: Jiang Tianhang 1919524828@qq.com
  * @Date: 2025-10-29 12:12:28
  * @LastEditors: Jiang Tianhang 1919524828@qq.com
- * @LastEditTime: 2026-01-23 23:48:00
- * @FilePath: \NE_RTOS_TEST\Components\motor\DM_Motor.c
+ * @LastEditTime: 2026-02-05 19:38:45
+ * @FilePath: \MDK-ARMd:\RoboMaster\code\NE_RTOS_TEST\Components\motor\DM_Motor.c
  * @Description: 
  */
 #include "dm_motor.h"
@@ -50,17 +50,17 @@ void DM_Motor_Init(DM_Motor_t *const p_motor, DM_Motor_Init_t* init)
   memset(&p_motor->processed_measure, 0, sizeof(p_motor->processed_measure));
 
 #if DM_TX_USE_MIT_MODE == 1
-  BSP_CAN_Tx_Init(&p_motor->mit_tx_instance, p_motor->hcan, p_motor->mit_mode_data.txd, p_motor->id, CAN_ID_STD, 0x8, CAN_RTR_DATA);
+  BSP_CAN_Tx_Init(&p_motor->mit_tx_instance, p_motor->hcan, p_motor->id, CAN_ID_STD, 0x8, CAN_RTR_DATA);
   memset(&p_motor->mit_mode_data, 0, sizeof(p_motor->mit_mode_data));
 #endif
 
 #if DM_TX_USE_POS_SPD_MODE == 1
-  BSP_CAN_Tx_Init(&p_motor->pos_spd_tx_instance, p_motor->hcan, p_motor->pos_spd_mode_data.txd, p_motor->id + DM_POS_SPD_MODE_ID_BASE, CAN_ID_STD, 0x8, CAN_RTR_DATA);
+  BSP_CAN_Tx_Init(&p_motor->pos_spd_tx_instance, p_motor->hcan, p_motor->id + DM_POS_SPD_MODE_ID_BASE, CAN_ID_STD, 0x8, CAN_RTR_DATA);
   memset(&p_motor->pos_spd_mode_data, 0, sizeof(p_motor->pos_spd_mode_data));
 #endif
 
 #if DM_TX_USE_SPD_MODE == 1
-  BSP_CAN_Tx_Init(&p_motor->spd_tx_instance, p_motor->hcan, p_motor->spd_mode_data.txd, p_motor->id + DM_SPD_MODE_ID_BASE, CAN_ID_STD, 0x4, CAN_RTR_DATA);
+  BSP_CAN_Tx_Init(&p_motor->spd_tx_instance, p_motor->hcan, p_motor->id + DM_SPD_MODE_ID_BASE, CAN_ID_STD, 0x4, CAN_RTR_DATA);
   memset(&p_motor->spd_mode_data, 0, sizeof(p_motor->spd_mode_data));
 #endif
 }
@@ -323,6 +323,7 @@ void DM_Motor_MIT_Send(DM_Motor_t *const p_motor)
   p_motor->mit_mode_data.txd[6] = ((kd_ecd & 0x0F) << 4) | (torq_ecd >> 8);
   p_motor->mit_mode_data.txd[7] = torq_ecd;
 
+  BSP_CAN_SetTxBuf(&p_motor->mit_tx_instance, p_motor->mit_mode_data.txd);
   BSP_CAN_Transmit(&p_motor->mit_tx_instance);
 }
 #endif
@@ -385,6 +386,7 @@ void DM_Motor_POS_SPD_Send(DM_Motor_t *const p_motor)
   memcpy(p_motor->pos_spd_mode_data.txd + 4, &temp_set_pos_rad, 4);
   memcpy(p_motor->pos_spd_mode_data.txd, &temp_set_spd_radps, 4);
 
+  BSP_CAN_SetTxBuf(&p_motor->pos_spd_tx_instance, p_motor->pos_spd_mode_data.txd);
   BSP_CAN_Transmit(&p_motor->pos_spd_tx_instance);
 }
 #endif
@@ -418,6 +420,7 @@ void DM_Motor_SPD_Send(DM_Motor_t *const p_motor)
   // 更新发送数据
   memcpy(p_motor->spd_mode_data.txd, &temp_set_spd_radps, 4);
 
+  BSP_CAN_SetTxBuf(&p_motor->spd_tx_instance, p_motor->spd_mode_data.txd);
   BSP_CAN_Transmit(&p_motor->spd_tx_instance);
 }
 #endif

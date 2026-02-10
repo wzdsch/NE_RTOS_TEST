@@ -7,7 +7,7 @@
  * @Author: Jiang Tianhang 1919524828@qq.com
  * @Date: 2025-10-26 16:48:17
  * @LastEditors: Jiang Tianhang 1919524828@qq.com
- * @LastEditTime: 2026-01-23 23:45:48
+ * @LastEditTime: 2026-02-07 11:38:53
  * @FilePath: \NE_RTOS_TEST\Components\bsp\bsp_can.h
  * @Description: 
  */
@@ -26,7 +26,7 @@ typedef struct _TxInstance
     CAN_HandleTypeDef *p_can_handle;  // can句柄
     CAN_TxHeaderTypeDef tx_header;    // 发送报头
     uint32_t tx_id;                   // 发送id
-    uint8_t* p_tx_buf;                // 外部发送缓存指针, 注意内存长度>=DLC, 并保证此参数的有效性
+    uint8_t tx_buf[8];                // 内部发送缓存
     uint32_t tx_mailbox;              // 发送邮箱
 } BSP_CAN_TxInstance;
 
@@ -35,7 +35,6 @@ typedef struct _RxInstance
   CAN_HandleTypeDef *p_can_handle;  // can句柄
   CAN_RxHeaderTypeDef rx_header;    // 接收报头
 
-  // 注意: 扩展帧id为 stdid << 18 + extid
   uint32_t rx_id;                   // 接收id
   uint32_t IDE;                     // id类型 STD / EXT
   uint8_t rx_buff[8];               // 接收缓存, 最大为8个字节
@@ -57,12 +56,11 @@ void BSP_CAN_InitAll(void);
 /// @brief can发送实例初始化
 /// @param p_tx_instance 发送实例指针
 /// @param hcan can句柄
-/// @param p_buf 发送缓存指针, 长度大于DLC
 /// @param tx_id 发送id
 /// @param IDE id类型 STD / EXT
 /// @param DLC 发送长度(字节)
 /// @param RTR 数据类型 数据 / 遥控帧
-void BSP_CAN_Tx_Init(BSP_CAN_TxInstance *p_tx_instance, CAN_HandleTypeDef *hcan, uint8_t* p_buf, uint32_t tx_id, uint32_t IDE, uint32_t DLC, uint32_t RTR);
+void BSP_CAN_Tx_Init(BSP_CAN_TxInstance *p_tx_instance, CAN_HandleTypeDef *hcan, uint32_t tx_id, uint32_t IDE, uint32_t DLC, uint32_t RTR);
 
 /// @brief 注册can接收实例, 注册后会自动接收数据和调用回调, 注册失败会卡死!
 /// @param g_can_rx_instance 接收实例指针(注意: 此指针指向的结构体必须是全局变量, 否则可能会非法访问内存!)
@@ -72,7 +70,7 @@ void BSP_CAN_Tx_Init(BSP_CAN_TxInstance *p_tx_instance, CAN_HandleTypeDef *hcan,
 /// @param can_rx_callback 回调函数
 void BSP_CAN_RxRegister(BSP_CAN_RxInstance *gp_can_rx_instance, CAN_HandleTypeDef *const p_hcan,
                         const uint32_t rx_id, const uint32_t IDE, void *const owner_moudle,
-                        void (*pCanRxCallback)(struct _RxInstance *));
+                        void (*pCanRxCallback)(BSP_CAN_RxInstance *));
 
 /// @brief 设置CAN发送实例的发送数据长度
 /// @param p_tx_instance CAN发送实例指针, 注意确保该参数有效性
@@ -84,9 +82,9 @@ void BSP_CAN_SetTxDLC(BSP_CAN_TxInstance *p_tx_instance, uint8_t length);
 /// @param tx_id 发送ID
 void BSP_CAN_SetTxID(BSP_CAN_TxInstance *p_tx_instance, const uint32_t tx_id);
 
-/// @brief 设置外部发送缓存, 注意数据长度必须与DLC一致
+/// @brief 复制外部发送缓存到内部, 注意数据长度必须与DLC一致
 /// @param p_tx_instance 
-/// @param p_data 
+/// @param p_data 外部发送数据指针
 void BSP_CAN_SetTxBuf(BSP_CAN_TxInstance *p_tx_instance, uint8_t *const p_data);
 
 /// @brief 将CAN发送实例的发送缓存填入发送邮箱, 邮箱满或发送失败立即返回，不会阻塞

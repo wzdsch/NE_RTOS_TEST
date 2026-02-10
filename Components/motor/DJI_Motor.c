@@ -7,7 +7,7 @@
  * @Author: Jiang Tianhang 1919524828@qq.com
  * @Date: 2025-10-29 12:11:38
  * @LastEditors: Jiang Tianhang 1919524828@qq.com
- * @LastEditTime: 2026-01-29 07:24:47
+ * @LastEditTime: 2026-02-06 21:24:58
  * @FilePath: \NE_RTOS_TEST\Components\motor\DJI_Motor.c
  * @Description: 
  */
@@ -32,34 +32,15 @@ typedef struct
 } _DJI_Motor_TxGroup_t;
 
 // 全局大疆电机发送端口及数据
-uint8_t sg_dji_motor_can1_tx200_buff[8] = {0};
 static _DJI_Motor_TxGroup_t sg_dji_motor_can1_tx200_group;
-
-uint8_t sg_dji_motor_can1_tx1ff_buff[8] = {0};
 static _DJI_Motor_TxGroup_t sg_dji_motor_can1_tx1ff_group;
-
-uint8_t sg_dji_motor_can1_tx2ff_buff[8] = {0};
 static _DJI_Motor_TxGroup_t sg_dji_motor_can1_tx2ff_group;
-
-uint8_t sg_dji_motor_can1_tx1fe_buff[8] = {0};
 static _DJI_Motor_TxGroup_t sg_dji_motor_can1_tx1fe_group;
-
-uint8_t sg_dji_motor_can1_tx2fe_buff[8] = {0};
 static _DJI_Motor_TxGroup_t sg_dji_motor_can1_tx2fe_group;
-
-uint8_t sg_dji_motor_can2_tx200_buff[8] = {0};
 static _DJI_Motor_TxGroup_t sg_dji_motor_can2_tx200_group;
-
-uint8_t sg_dji_motor_can2_tx1ff_buff[8] = {0};
 static _DJI_Motor_TxGroup_t sg_dji_motor_can2_tx1ff_group;
-
-uint8_t sg_dji_motor_can2_tx2ff_buff[8] = {0};
 static _DJI_Motor_TxGroup_t sg_dji_motor_can2_tx2ff_group;
-
-uint8_t sg_dji_motor_can2_tx1fe_buff[8] = {0};
 static _DJI_Motor_TxGroup_t sg_dji_motor_can2_tx1fe_group;
-
-uint8_t sg_dji_motor_can2_tx2fe_buff[8] = {0};
 static _DJI_Motor_TxGroup_t sg_dji_motor_can2_tx2fe_group;
 
 void _DJI_Motor_RxCallback(BSP_CAN_RxInstance *p_rx_instance);
@@ -68,19 +49,6 @@ void _DJI_Motor_RxCallback(BSP_CAN_RxInstance *p_rx_instance);
 /// @param
 void DJI_Motor_TxInitAll(void)
 {
-  memset(sg_dji_motor_can1_tx200_buff, 0, 8);
-  memset(sg_dji_motor_can1_tx1ff_buff, 0, 8);
-  memset(sg_dji_motor_can1_tx2ff_buff, 0, 8);
-  memset(sg_dji_motor_can1_tx1fe_buff, 0, 8);
-  memset(sg_dji_motor_can1_tx2fe_buff, 0, 8);
-
-  memset(sg_dji_motor_can2_tx200_buff, 0, 8);
-  memset(sg_dji_motor_can2_tx1ff_buff, 0, 8);
-  memset(sg_dji_motor_can2_tx2ff_buff, 0, 8);
-  memset(sg_dji_motor_can2_tx1fe_buff, 0, 8);
-  memset(sg_dji_motor_can2_tx2fe_buff, 0, 8);
-  
-
   sg_dji_motor_can1_tx200_group.en = 0;
   sg_dji_motor_can1_tx1ff_group.en = 0;
   sg_dji_motor_can1_tx2ff_group.en = 0;
@@ -144,26 +112,26 @@ void DJI_Motor_TxInitAll(void)
   sg_dji_motor_can2_tx2fe_group.p_motor[3] = NULL;
 
   BSP_CAN_Tx_Init(&sg_dji_motor_can1_tx200_group.p_tx_instance, &hcan1,\
-                  sg_dji_motor_can1_tx200_buff, 0x200, CAN_ID_STD, 8, CAN_RTR_DATA);
+                  0x200, CAN_ID_STD, 8, CAN_RTR_DATA);
   BSP_CAN_Tx_Init(&sg_dji_motor_can1_tx1ff_group.p_tx_instance, &hcan1, \
-                  sg_dji_motor_can1_tx1ff_buff, 0x1ff, CAN_ID_STD, 8, CAN_RTR_DATA);
+                  0x1ff, CAN_ID_STD, 8, CAN_RTR_DATA);
   BSP_CAN_Tx_Init(&sg_dji_motor_can1_tx2ff_group.p_tx_instance, &hcan1, \
-                  sg_dji_motor_can1_tx2ff_buff, 0x2ff, CAN_ID_STD, 8, CAN_RTR_DATA);
+                  0x2ff, CAN_ID_STD, 8, CAN_RTR_DATA);
   BSP_CAN_Tx_Init(&sg_dji_motor_can1_tx1fe_group.p_tx_instance, &hcan1, \
-                  sg_dji_motor_can1_tx1fe_buff, 0x1fe, CAN_ID_STD, 8, CAN_RTR_DATA);
+                  0x1fe, CAN_ID_STD, 8, CAN_RTR_DATA);
   BSP_CAN_Tx_Init(&sg_dji_motor_can1_tx2fe_group.p_tx_instance, &hcan1, \
-                  sg_dji_motor_can1_tx2fe_buff, 0x2fe, CAN_ID_STD, 8, CAN_RTR_DATA);
+                  0x2fe, CAN_ID_STD, 8, CAN_RTR_DATA);
 
   BSP_CAN_Tx_Init(&sg_dji_motor_can2_tx200_group.p_tx_instance, &hcan2, \
-                  sg_dji_motor_can2_tx200_buff, 0x200, CAN_ID_STD, 8, CAN_RTR_DATA);
+                  0x200, CAN_ID_STD, 8, CAN_RTR_DATA);
   BSP_CAN_Tx_Init(&sg_dji_motor_can2_tx1ff_group.p_tx_instance, &hcan2, \
-                  sg_dji_motor_can2_tx1ff_buff, 0x1ff, CAN_ID_STD, 8, CAN_RTR_DATA);
+                  0x1ff, CAN_ID_STD, 8, CAN_RTR_DATA);
   BSP_CAN_Tx_Init(&sg_dji_motor_can2_tx2ff_group.p_tx_instance, &hcan2, \
-                  sg_dji_motor_can2_tx2ff_buff, 0x2ff, CAN_ID_STD, 8, CAN_RTR_DATA);
+                  0x2ff, CAN_ID_STD, 8, CAN_RTR_DATA);
   BSP_CAN_Tx_Init(&sg_dji_motor_can2_tx1fe_group.p_tx_instance, &hcan2, \
-                  sg_dji_motor_can2_tx1fe_buff, 0x1fe, CAN_ID_STD, 8, CAN_RTR_DATA);
+                  0x1fe, CAN_ID_STD, 8, CAN_RTR_DATA);
   BSP_CAN_Tx_Init(&sg_dji_motor_can2_tx2fe_group.p_tx_instance, &hcan2, \
-                  sg_dji_motor_can2_tx2fe_buff, 0x2fe, CAN_ID_STD, 8, CAN_RTR_DATA);
+                  0x2fe, CAN_ID_STD, 8, CAN_RTR_DATA);
 }
 
 /// @brief 大疆电机初始化
@@ -325,8 +293,8 @@ void _DJI_Motor_GroupUpdateSend(_DJI_Motor_TxGroup_t *p_group)
           tmp_set_cmd = -tmp_set_cmd;
         }
       }
-      p_group->p_tx_instance.p_tx_buf[i * 2] = (tmp_set_cmd >> 8) & 0xFF;
-      p_group->p_tx_instance.p_tx_buf[i * 2 + 1] = tmp_set_cmd & 0xFF;
+      p_group->p_tx_instance.tx_buf[i * 2] = (tmp_set_cmd >> 8) & 0xFF;
+      p_group->p_tx_instance.tx_buf[i * 2 + 1] = tmp_set_cmd & 0xFF;
     }
   }
 
