@@ -26,12 +26,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "MotorCtrl.h"
-#include <stdint.h>
-#include "BSP_CAN.h"
-#include "DJI_Motor.h"
-// #include "bsp_wbus.h"
-#include "remote_receive.h"
+#include "usr_main.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -100,29 +95,14 @@ int main(void)
   MX_CAN1_Init();
   MX_CAN2_Init();
   MX_USART3_UART_Init();
+  MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
-  BSP_CAN_InitAll();
-	DJI_Motor_TxInitAll();
-  // W_BUS_Init();
-  FSI6_BUS_IDLEHandler_Init();
+  Usr_Main_Init(); //用户初始化
   /* USER CODE END 2 */
 
   /* Init scheduler */
   osKernelInitialize();  /* Call init function for freertos objects (in cmsis_os2.c) */
   MX_FREERTOS_Init();
-  // 
-  // CAN_FilterTypeDef can_filter_conf;
-  // can_filter_conf.FilterBank = 13;
-  // can_filter_conf.FilterMode = CAN_FILTERMODE_IDMASK;
-  // can_filter_conf.FilterScale = CAN_FILTERSCALE_32BIT;
-  // can_filter_conf.FilterIdHigh = 0x0000;
-  // can_filter_conf.FilterIdLow = 0x0000;
-  // can_filter_conf.FilterMaskIdHigh = 0x0000;
-  // can_filter_conf.FilterMaskIdLow = 0x0000;
-  // can_filter_conf.FilterFIFOAssignment = CAN_FILTER_FIFO0;
-  // can_filter_conf.FilterActivation = ENABLE;
-  // can_filter_conf.SlaveStartFilterBank = 14;
-  // HAL_CAN_ConfigFilter(&hcan1, &can_filter_conf);
 
   /* Start scheduler */
   osKernelStart();

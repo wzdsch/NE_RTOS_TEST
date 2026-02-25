@@ -47,7 +47,7 @@ typedef struct _MotorCtrl_t
   Pid_t pid_external; // 外环
   Pid_t pid_internal; // 内环 (单闭环使用此环)
 
-  float set_target; // 设定目标
+  float target; // 设定目标
 
   // 反馈数据指针
   float *p_pid_ext_fdb; // pid外环反馈数据指针

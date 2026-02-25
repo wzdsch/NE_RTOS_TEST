@@ -23,11 +23,11 @@
 #pragma pack(1) ////////////////////////////////////////////////////////////////////////
 typedef struct _TxInstance
 {
-    CAN_HandleTypeDef *p_can_handle;  // can句柄
-    CAN_TxHeaderTypeDef tx_header;    // 发送报头
-    uint32_t tx_id;                   // 发送id
-    uint8_t tx_buf[8];                // 内部发送缓存
-    uint32_t tx_mailbox;              // 发送邮箱
+  CAN_HandleTypeDef *p_can_handle;  // can句柄
+  CAN_TxHeaderTypeDef tx_header;    // 发送报头
+  uint32_t tx_id;                   // 发送id
+  uint8_t tx_buf[8];                // 内部发送缓存
+  uint32_t tx_mailbox;              // 发送邮箱
 } BSP_CAN_TxInstance;
 
 typedef struct _RxInstance

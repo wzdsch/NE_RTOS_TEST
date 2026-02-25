@@ -105,7 +105,7 @@ typedef struct {
   uint32_t rx_id;           // 接收ID
   DJI_Motor_Dir_e dir;      // 电机方向
   int16_t zero_offset;      // 电机编码器零点偏移
-  void (*const MotorRxCallback)(DJI_Motor_t *); // 电机接收回调函数
+  void (* MotorRxCallback)(DJI_Motor_t *); // 电机接收回调函数
   void *p_owner_moudle; // 电机所属模块(云台、底盘等), 用于前馈等函数
 } DJI_Motor_Init_t;
 

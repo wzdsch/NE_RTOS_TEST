@@ -14,6 +14,9 @@
 #include "DJI_Motor.h"
 #include <string.h>
 
+#include "cmsis_os.h"
+extern osMessageQueueId_t canTxMsgQueueHandle;
+
 #define DJI_MMOTOR_MAX_I_CMD 16384 // 大疆电机电流编码控制最大值
 #define DJI_MMOTOR_MAX_U_CMD 25000 // 大疆电机电压编码控制最大值 (6020电压控制模式)
 
@@ -298,7 +301,8 @@ void _DJI_Motor_GroupUpdateSend(_DJI_Motor_TxGroup_t *p_group)
     }
   }
 
-  BSP_CAN_Transmit(&p_group->p_tx_instance);
+  osMessageQueuePut(canTxMsgQueueHandle, &p_group->p_tx_instance, 0, 0);
+  // BSP_CAN_Transmit(&p_group->p_tx_instance);
 }
 
 void DJI_Motor_GroupTransmit(CAN_HandleTypeDef *p_hcan, DJI_Motor_TxID_e tx_id)

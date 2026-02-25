@@ -18,7 +18,19 @@
 extern UART_HandleTypeDef huart3;        // uart3句柄
 extern DMA_HandleTypeDef hdma_usart3_rx; // dma对应uart句柄
 
-FSI6Data_t FSI6Data;                                                         // 拆包后的数据
+// 最终拆包后的数据
+FSI6Data_t fsi6_data = {
+  .left_x = FSI6_CHANNEL_MID,
+  .left_y = FSI6_CHANNEL_MID,
+  .right_x = FSI6_CHANNEL_MID,
+  .right_y = FSI6_CHANNEL_MID,
+  .left_ch1 = FSI6_CHANNEL_MIN,
+  .left_ch2 = FSI6_CHANNEL_MIN,
+  .right_ch1 = FSI6_CHANNEL_MIN,
+  .right_ch2 = FSI6_CHANNEL_MIN,
+  .left_knob = FSI6_CHANNEL_MIN,
+  .right_knob = FSI6_CHANNEL_MIN,
+};
 __attribute__((section(".sram2"))) uint8_t W_BusRxBuffer[2][RC_FRAME_NUM]; // DMA 双缓冲区
 __attribute__((section(".sram2"))) uint8_t *fsi6_completed_buf;            // 指向本次接收完成的数据缓冲区
 
@@ -98,7 +110,7 @@ void FSI6_BUS_IDLEHandler(void)
     {
       fsi6_completed_buf = W_BusRxBuffer[1];
     }
-    GetFSI6Data(&FSI6Data, fsi6_completed_buf);
+    GetFSI6Data(&fsi6_data, fsi6_completed_buf);
     // 重新启动 DMA 接收
     __HAL_DMA_SET_COUNTER(&hdma_usart3_rx, RC_FRAME_NUM);
     __HAL_DMA_ENABLE(&hdma_usart3_rx);

@@ -28,7 +28,7 @@ void MotorCtrl_Init(MotorCtrl_t *p_motor_ctrl, MotorCtrl_PidMode_e ctrl_mode, ui
   p_motor_ctrl->out_values = out_values;
   p_motor_ctrl->max_out = max_out;
 
-  p_motor_ctrl->set_target = 0;
+  p_motor_ctrl->target = 0;
 
   p_motor_ctrl->pCustomCtrlAlgorithm = NULL;
   p_motor_ctrl->pFeedForward = NULL;
@@ -79,12 +79,12 @@ float _MotorCtrl_PID_Calc(MotorCtrl_t *p_motor_ctrl)
 {
   // 单环使用内环
   if (p_motor_ctrl->ctrl_mode == MOTOR_CTRL_PID_INTERNAL) {
-    PID_Calc(&p_motor_ctrl->pid_internal, *p_motor_ctrl->p_pid_int_fdb, p_motor_ctrl->set_target);
+    PID_Calc(&p_motor_ctrl->pid_internal, *p_motor_ctrl->p_pid_int_fdb, p_motor_ctrl->target);
     return p_motor_ctrl->pid_internal.out;
   }
   // 双环, 外环输出作为内环输入
   else if (p_motor_ctrl->ctrl_mode == MOTOR_CTRL_PID_DOUBLE) {
-    PID_Calc(&p_motor_ctrl->pid_external, *p_motor_ctrl->p_pid_ext_fdb, p_motor_ctrl->set_target);
+    PID_Calc(&p_motor_ctrl->pid_external, *p_motor_ctrl->p_pid_ext_fdb, p_motor_ctrl->target);
     PID_Calc(&p_motor_ctrl->pid_internal, *p_motor_ctrl->p_pid_int_fdb, p_motor_ctrl->pid_external.out);
     return p_motor_ctrl->pid_internal.out;
   }
@@ -164,7 +164,7 @@ void MotorCtrl_Calc(MotorCtrl_t *p_motor_ctrl)
 }
 
 void MotorCtrl_SetTarget(MotorCtrl_t *p_motor_ctrl, float target) {
-  p_motor_ctrl->set_target = target;
+  p_motor_ctrl->target = target;
 }
 
 void MotorCtrl_Enable(MotorCtrl_t *p_motor_ctrl) {
@@ -184,7 +184,7 @@ void MotorCtrl_SetPreProcess(MotorCtrl_t *p_motor_ctrl, float (*pPreProcess)(str
 }
 
 void MotorCtrl_SetPostProcess(MotorCtrl_t *p_motor_ctrl, float (*pPostProcess)(struct _MotorCtrl_t *p_motor_ctrl)) {
-
+  p_motor_ctrl->pPostProcess = pPostProcess;
 }
 
 void MotorCtrl_SetFeedForward(MotorCtrl_t *p_motor_ctrl, float (*FeedFwd)(MotorCtrl_t *p_motor_ctrl)) {

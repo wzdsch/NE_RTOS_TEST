@@ -7,27 +7,15 @@
  * @Author: Jiang Tianhang 1919524828@qq.com
  * @Date: 2026-01-05 21:29:50
  * @LastEditors: Jiang Tianhang 1919524828@qq.com
- * @LastEditTime: 2026-02-10 15:21:25
+ * @LastEditTime: 2026-02-11 12:18:39
  * @FilePath: \NE_RTOS_TEST\Components\moudle\can_custom_comm.h
  * @Description: CAN自定义通信头文件，自动拆包，会占用 startID ~ startID + 拆包数 - 1 的连续ID
  */
 #ifndef CAN_CUSTOM_COMM_H
 #define CAN_CUSTOM_COMM_H
 
+#include "can_custom_comm_protocol.h"
 #include "bsp_can.h"
-
-// #pragma pack(1)
-
-// typedef struct {
-//   float yaw1_tar;
-//   float pitch1_tar;
-//   float pitch2_tar;
-//   float yaw2_tar;
-//   float end_pitch_tar;
-//   float end_yaw_tar;
-// } CAN_Custom_ArmData_t;
-
-// #pragma pack()
 
 typedef struct {
   BSP_CAN_TxInstance tx_instance;
@@ -66,5 +54,10 @@ typedef struct {
   uint8_t size;
   void (*pUnpackFunc)(void* p_buf);
 } CAN_CustomComm_Rx_Init_t;
+
+void CAN_CustomComm_Tx_Init(CAN_CustomComm_Tx_t* p_tx, CAN_CustomComm_Tx_Init_t* init);
+void CAN_CustomComm_Tx_PackSend(CAN_CustomComm_Tx_t* p_tx);
+
+void CAN_CustomComm_Rx_Init(CAN_CustomComm_Rx_t* p_rx, CAN_CustomComm_Rx_Init_t* init);
 
 #endif

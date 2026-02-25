@@ -12,6 +12,9 @@
  * @Description: 
  */
 #include "arm.h"
+#include "JY_ME01.h"
+
+Arm_t arm;
 
 float PITCH2_3508_EXT_PID_DATA[5] = {1.f, .0f, .0f, 8000.f, 2000.f};
 float PITCH2_3508_INT_PID_DATA[5] = {1.f, .0f, .0f, 5000.f, 2000.f};
@@ -28,7 +31,8 @@ float _Arm_Pitch2_GravertyFeedFwd(MotorCtrl_t *motor_ctrl);
 float _Arm_Yaw2_GravertyFeedFwd(MotorCtrl_t *motor_ctrl);
 
 void Arm_Init(Arm_t *arm, ArmInit_t* init) {
-  arm->status = ARM_DISABLE;
+  JY_ME01_Init(&JY_ME01, &huart1);
+  arm->state = ARM_DISABLE;
   arm->load = ARM_LOAD_NONE;
   DM_Motor_Init(&arm->yaw1_8009p, &init->yaw1_8009p_init);
   DM_Motor_MIT_SetPD(&arm->yaw1_8009p, 20.f, 0.5f);
@@ -42,7 +46,7 @@ void Arm_Init(Arm_t *arm, ArmInit_t* init) {
 
   DJI_Motor_Init(&arm->pitch2_3508, &init->pitch2_3508_init);
   MotorCtrl_Init(&arm->pitch2_ctrl, MOTOR_CTRL_PID_DOUBLE, MOTOR_CTRL_OUT_PID | MOTOR_CTRL_OUT_FEEDFWD, 16384.0f, &arm->pitch2_3508);
-  MotorCtrl_ExternalPid_Init(&arm->pitch2_ctrl, PID_POSITION, &arm->pitch2_3508.processed_measure.pos_total_ecd_f, PITCH2_3508_EXT_PID_DATA);
+  MotorCtrl_ExternalPid_Init(&arm->pitch2_ctrl, PID_POSITION, &JY_ME01.angle, PITCH2_3508_EXT_PID_DATA);
   MotorCtrl_InternalPid_Init(&arm->pitch2_ctrl, PID_POSITION, &arm->pitch2_3508.processed_measure.spd_rpm_f, PITCH2_3508_INT_PID_DATA);
   MotorCtrl_SetFeedForward(&arm->pitch2_ctrl, _Arm_Pitch2_GravertyFeedFwd);
   
@@ -63,22 +67,22 @@ void Arm_Init(Arm_t *arm, ArmInit_t* init) {
 }
 
 inline void Arm_SetTarget(Arm_t *arm, ArmLoad_t load, float yaw1_target, float pitch1_target, float pitch2_target, float yaw2_target, \
-                         float end1_target, float end2_target) {
+                         float end_pitch, float end_yaw) {
   arm->load = load;
-  arm->yaw1_ctrl.set_target = yaw1_target;
-  arm->pitch1_ctrl.set_target = pitch1_target;
-  arm->pitch2_ctrl.set_target = pitch2_target;
-  arm->yaw2_ctrl.set_target = yaw2_target;
-  arm->end1_ctrl.set_target = end1_target;
-  arm->end2_ctrl.set_target = end2_target;
+  arm->yaw1_ctrl.target = yaw1_target;
+  arm->pitch1_ctrl.target = pitch1_target;
+  arm->pitch2_ctrl.target = pitch2_target;
+  arm->yaw2_ctrl.target = yaw2_target;
+  arm->end1_ctrl.target = end_pitch + end_yaw;
+  arm->end2_ctrl.target = -end_pitch + end_yaw;
 
-  DM_Motor_MIT_SetPos(&arm->yaw1_8009p, arm->yaw1_ctrl.set_target);
-  DM_Motor_MIT_SetPos(&arm->pitch1_8009p, arm->pitch1_ctrl.set_target);
-  DM_Motor_MIT_SetPos(&arm->yaw2_4310, arm->yaw2_ctrl.set_target);
+  DM_Motor_MIT_SetPos(&arm->yaw1_8009p, arm->yaw1_ctrl.target);
+  DM_Motor_MIT_SetPos(&arm->pitch1_8009p, arm->pitch1_ctrl.target);
+  DM_Motor_MIT_SetPos(&arm->yaw2_4310, arm->yaw2_ctrl.target);
 }
 
 void Arm_Enable(Arm_t *arm) {
-  arm->status = ARM_ENABLE;
+  arm->state = ARM_ENABLE;
   DM_Motor_Enable(&arm->yaw1_8009p);
   DM_Motor_Enable(&arm->pitch1_8009p);
   DJI_Motor_Enable(&arm->pitch2_3508);
@@ -95,7 +99,7 @@ void Arm_Enable(Arm_t *arm) {
 }
 
 void Arm_Disable(Arm_t *arm) {
-  arm->status = ARM_DISABLE;
+  arm->state = ARM_DISABLE;
   DM_Motor_Disable(&arm->yaw1_8009p);
   DM_Motor_Disable(&arm->pitch1_8009p);
   DJI_Motor_Disable(&arm->pitch2_3508);
@@ -112,7 +116,7 @@ void Arm_Disable(Arm_t *arm) {
 }
 
 void Arm_Calc(Arm_t *arm) {
-  if (arm->status == ARM_DISABLE) {
+  if (arm->state == ARM_DISABLE) {
     DM_Motor_MIT_SetTorq(&arm->yaw1_8009p, 0);
     DM_Motor_MIT_SetTorq(&arm->pitch1_8009p, 0);
     DJI_Motor_SetCmd(&arm->pitch2_3508, 0);
@@ -120,7 +124,7 @@ void Arm_Calc(Arm_t *arm) {
     DJI_Motor_SetCmd(&arm->end1_2006, 0);
     DJI_Motor_SetCmd(&arm->end2_2006, 0);
     return;
-  } else if (arm->status == ARM_ENABLE) {
+  } else if (arm->state == ARM_ENABLE) {
     MotorCtrl_Calc(&arm->yaw1_ctrl);
     MotorCtrl_Calc(&arm->pitch1_ctrl);
     MotorCtrl_Calc(&arm->pitch2_ctrl);

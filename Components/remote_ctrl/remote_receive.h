@@ -7,7 +7,7 @@
  * @Author: Jiang Tianhang 1919524828@qq.com
  * @Date: 2026-01-07 11:36:00
  * @LastEditors: Jiang Tianhang 1919524828@qq.com
- * @LastEditTime: 2026-01-29 07:40:20
+ * @LastEditTime: 2026-02-11 13:17:17
  * @FilePath: \NE_RTOS_TEST\Components\remote_ctrl\remote_receive.h
  * @Description: This file is by Guo Hongting
  */
@@ -18,7 +18,7 @@
 
 /* 宏定义 */
 /* 一帧的字节 */
-#define RC_FRAME_NUM     25u
+#define RC_FRAME_NUM     25
 
 #define FSI6_CHANNEL_MIN 240
 #define FSI6_CHANNEL_MID 1024
@@ -45,9 +45,9 @@ typedef struct {
   uint8_t fsi6_flag; // 0x00
   uint8_t fsi6_end;  // 0x00
 
-}FSI6Data_t;
+} FSI6Data_t;
 
-extern FSI6Data_t FSI6Data;                      // 拆包后的数据
+extern FSI6Data_t fsi6_data;                      // 拆包后的数据
 
 /* DMA和串口空闲中断初始化 */
 extern void FSI6_BUS_IDLEHandler_Init(void);

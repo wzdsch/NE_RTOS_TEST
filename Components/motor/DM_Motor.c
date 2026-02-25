@@ -15,6 +15,9 @@
 #include "tools.h"
 #include "string.h"
 
+#include "cmsis_os.h"
+extern osMessageQueueId_t canTxMsgQueueHandle;
+
 uint8_t DM_MOTOR_CLEAR_ERR_TXD[8] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFB};
 uint8_t DM_MOTOR_ENABLE_TXD[8] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFC};
 uint8_t DM_MOTOR_DISABLE_TXD[8] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFD};
@@ -324,7 +327,9 @@ void DM_Motor_MIT_Send(DM_Motor_t *const p_motor)
   p_motor->mit_mode_data.txd[7] = torq_ecd;
 
   BSP_CAN_SetTxBuf(&p_motor->mit_tx_instance, p_motor->mit_mode_data.txd);
-  BSP_CAN_Transmit(&p_motor->mit_tx_instance);
+
+  osMessageQueuePut(canTxMsgQueueHandle, &p_motor->mit_tx_instance, 0, 0);
+  // BSP_CAN_Transmit(&p_motor->mit_tx_instance);
 }
 #endif
 
@@ -386,8 +391,10 @@ void DM_Motor_POS_SPD_Send(DM_Motor_t *const p_motor)
   memcpy(p_motor->pos_spd_mode_data.txd + 4, &temp_set_pos_rad, 4);
   memcpy(p_motor->pos_spd_mode_data.txd, &temp_set_spd_radps, 4);
 
-  BSP_CAN_SetTxBuf(&p_motor->pos_spd_tx_instance, p_motor->pos_spd_mode_data.txd);
-  BSP_CAN_Transmit(&p_motor->pos_spd_tx_instance);
+  BSP_CAN_SetTxBuf(&p_motor->pos_spd_tx_instance, p_motor->pos_spd_mode_data.txd);\
+
+  osMessageQueuePut(canTxMsgQueueHandle, &p_motor->pos_spd_tx_instance, 0, 0);
+  // BSP_CAN_Transmit(&p_motor->pos_spd_tx_instance);
 }
 #endif
 
@@ -421,6 +428,8 @@ void DM_Motor_SPD_Send(DM_Motor_t *const p_motor)
   memcpy(p_motor->spd_mode_data.txd, &temp_set_spd_radps, 4);
 
   BSP_CAN_SetTxBuf(&p_motor->spd_tx_instance, p_motor->spd_mode_data.txd);
-  BSP_CAN_Transmit(&p_motor->spd_tx_instance);
+
+  osMessageQueuePut(canTxMsgQueueHandle, &p_motor->spd_tx_instance, 0, 0);
+  // BSP_CAN_Transmit(&p_motor->spd_tx_instance);
 }
 #endif

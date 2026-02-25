@@ -7,13 +7,16 @@
  * @Author: Jiang Tianhang 1919524828@qq.com
  * @Date: 2026-01-05 21:29:25
  * @LastEditors: Jiang Tianhang 1919524828@qq.com
- * @LastEditTime: 2026-02-10 21:28:28
+ * @LastEditTime: 2026-02-11 13:32:06
  * @FilePath: \NE_RTOS_TEST\Components\moudle\can_custom_comm.c
  * @Description: 
  */
 #include "can_custom_comm.h"
 #include <string.h>
 #include <stdlib.h>
+
+#include "cmsis_os.h"
+extern osMessageQueueId_t canTxMsgQueueHandle;
 
 #define CAN_CUSTOM_COMM_MAX_PACK_CNT 4 // 最大拆包数
 
@@ -68,7 +71,10 @@ void CAN_CustomComm_Tx_PackSend(CAN_CustomComm_Tx_t* p_tx) {
     uint8_t pack_size = (p_tx->size - send_size) >= 8 ? 8 : (p_tx->size - send_size);
     BSP_CAN_SetTxDLC(&p_tx->tx_instance, pack_size);
     BSP_CAN_SetTxBuf(&p_tx->tx_instance, (uint8_t*)p_tx->p_buf + send_size);
-    BSP_CAN_Transmit(&p_tx->tx_instance);
+
+    osMessageQueuePut(canTxMsgQueueHandle, &p_tx->tx_instance, 0, 0);
+    // BSP_CAN_Transmit(&p_tx->tx_instance);
+
     BSP_CAN_SetTxID(&p_tx->tx_instance, p_tx->tx_instance.tx_id + 1); // 每发一个包id自增1
     send_size += pack_size;
   }
@@ -76,7 +82,7 @@ void CAN_CustomComm_Tx_PackSend(CAN_CustomComm_Tx_t* p_tx) {
 
 // --------------------------------- RX ---------------------------------
 
-void _CAN_CustomComm_RxCallback(BSP_CAN_RxInstance* p_rx_instance);
+static void _CAN_CustomComm_RxCallback(BSP_CAN_RxInstance* p_rx_instance);
 
 void CAN_CustomComm_Rx_Init(CAN_CustomComm_Rx_t* p_rx, CAN_CustomComm_Rx_Init_t* init) {
   uint8_t err = 0;
@@ -100,7 +106,7 @@ void CAN_CustomComm_Rx_Init(CAN_CustomComm_Rx_t* p_rx, CAN_CustomComm_Rx_Init_t*
   p_rx->pack_cnt = (init->size - 1) / 8 + 1;
 
   // 申请接收实例数组内存
-  p_rx->p_rx_instances = (BSP_CAN_RxInstance*)malloc(sizeof(BSP_CAN_RxInstance) * p_rx->pack_cnt);
+  p_rx->p_rx_instances = (BSP_CAN_RxInstance*)calloc(p_rx->pack_cnt, sizeof(BSP_CAN_RxInstance));
   if (p_rx->p_rx_instances == NULL) {
     err++; // 内存分配失败
   }
@@ -127,7 +133,7 @@ void CAN_CustomComm_Rx_Init(CAN_CustomComm_Rx_t* p_rx, CAN_CustomComm_Rx_Init_t*
   }
 }
 
-void _CAN_CustomComm_RxCallback(BSP_CAN_RxInstance* p_rx_instance) {
+static void _CAN_CustomComm_RxCallback(BSP_CAN_RxInstance* p_rx_instance) {
   CAN_CustomComm_Rx_t*p_custom_rx = (CAN_CustomComm_Rx_t*)(p_rx_instance->p_owner_moudle);
 
   // 错误时丢弃读取到的数据, 等下一组新数据

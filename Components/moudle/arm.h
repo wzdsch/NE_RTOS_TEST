@@ -21,7 +21,7 @@ typedef enum {
   ARM_DISABLE, // 失能
   ARM_ENABLE,  // 使能
   ARM_CALIB    // 校准中
-} ArmStatus_e;
+} ArmState_e;
 
 typedef enum
 {
@@ -39,8 +39,7 @@ typedef struct {
 } ArmInit_t;
 
 typedef struct {
-  ArmStatus_e status;
-
+  ArmState_e state;
   ArmLoad_t load;
 
   DM_Motor_t yaw1_8009p;
@@ -61,6 +60,8 @@ typedef struct {
   DJI_Motor_t end2_2006;
   MotorCtrl_t end2_ctrl;
 } Arm_t;
+
+extern Arm_t arm;
 
 void Arm_Init(Arm_t *arm, ArmInit_t *init);
 
