@@ -1,259 +1,276 @@
 /*
- * @beforeAnnotation: 
- * Copyright (c) 2026 by 
+ * @beforeAnnotation:
+ * Copyright (c) 2026 by
  * """ The Robomaster team : NEXT-E from Xi'an University of Technology """
  * All Rights Reserved.
- * 
- * @Description: 双M3508电机推杆机构控制模块实现
+ *
+ * @Author: Custom PushRod Module
+ * @Date: 2026-02-27
+ * @FilePath: \NE_RTOS_TEST\Components\motor\pushRod.c
+ * @Description: 推杆机构控制模块实现，内置前馈
  */
-
 #include "push_rod.h"
-#include "cmsis_os.h"
 #include <string.h>
-#include <math.h>
+#include "tools.h"
 
-// 内部回调函数声明
-static void _PushRod_MotorRxCallback(DJI_Motor_t *p_motor);
+PushRod_t push_rod;
 
-// 掉电检测逻辑
-static void _PushRod_OfflineDetect(PushRod_t *const p_rod)
+#define PUSH_ROD_MAX_ECD 100000
+#define PUSH_ROD_MIN_ECD (-100000)
+
+/// @brief 同步双电机累计编码误差
+/// @param p_push_rod 推杆结构体指针
+static void _PushRod_SyncMotorEcdError(PushRod_t *p_push_rod)
 {
-  uint32_t tick = osKernelGetTickCount();
+  p_push_rod->err_total_ecd = p_push_rod->motor1.processed_measure.pos_total_ecd_f - p_push_rod->motor2.processed_measure.pos_total_ecd_f;
+  PID_Calc(&p_push_rod->err_pid, p_push_rod->err_total_ecd, 0);
+}
 
-  // 检测电机1
-  if ((tick - p_rod->last_update_tick_1) > p_rod->offline_timeout)
+/// @brief 电机1前馈函数
+/// @param p_motor 电机结构体指针
+/// @return 前馈力矩 (电流编码值)
+static float _PushRod_Motor1_FeedForward(MotorCtrl_t *p_ctrl)
+{
+  return ((PushRod_t *)(p_ctrl->p_owner_moudle))->err_pid.out;
+}
+
+/// @brief 电机2前馈函数
+/// @param p_motor_ctrl 控制模块结构体指针
+/// @return 前馈力矩 (电流编码值)
+static float _PushRod_Motor2_FeedForward(MotorCtrl_t *p_motor_ctrl)
+{
+  PushRod_t *p_push_rod = (PushRod_t *)(((DJI_Motor_t *)(p_motor_ctrl->p_owner_moudle))->p_owner_moudle);
+  return -p_push_rod->err_pid.out;
+}
+
+/// @brief 推杆机构初始化
+void PushRod_Init(PushRod_t *p_push_rod, PushRod_Init_t *p_init)
+{
+  // 参数合法性检查
+  if (p_push_rod == NULL || p_init == NULL)
   {
-    if (p_rod->is_calibrated) // 只有之前校准过的才算掉电
-    {
-      p_rod->need_calib_1 = 1;
-      p_rod->is_calibrated = 0;
-      // 失能保护
-      PushRod_Disable(p_rod);
+    while (1) {
+      // param err
     }
   }
 
-  // 检测电机2
-  if ((tick - p_rod->last_update_tick_2) > p_rod->offline_timeout)
+  // 初始化推杆结构体基础参数
+  memset(p_push_rod, 0, sizeof(PushRod_t));
+  p_push_rod->state = PUSH_ROD_STATE_DISABLE;
+  p_push_rod->calib_current = p_init->calib_current;
+  p_push_rod->calib_target_count = p_init->calib_target_count;
+  p_push_rod->calib_count = 0;
+
+  p_init->motor1_init.p_owner_moudle = p_push_rod;
+  p_init->motor2_init.p_owner_moudle = p_push_rod;
+
+  DJI_Motor_Init(&p_push_rod->motor1, &p_init->motor1_init);
+  DJI_Motor_Init(&p_push_rod->motor2, &p_init->motor2_init);
+
+  // 初始化电机1控制模块 (双环PID，累计编码位置控制)
+  MotorCtrl_Init(&p_push_rod->motor1_ctrl, \
+                 MOTOR_CTRL_PID_DOUBLE, \
+                 MOTOR_CTRL_OUT_PID | MOTOR_CTRL_OUT_FEEDFWD, \
+                 p_init->motor1_max_out, \
+                 &p_push_rod->motor1);
+  MotorCtrl_SetFeedForward(&p_push_rod->motor1_ctrl, _PushRod_Motor1_FeedForward);
+
+  MotorCtrl_ExternalPid_Init(&p_push_rod->motor1_ctrl, \
+                             &p_push_rod->motor1.processed_measure.pos_total_ecd_f, \
+                             &p_init->motor1_pos_params);
+  MotorCtrl_InternalPid_Init(&p_push_rod->motor1_ctrl, \
+                             &p_push_rod->motor1.processed_measure.spd_rpm_f, \
+                             &p_init->motor1_spd_params);
+
+  // 初始化电机2控制模块 (双环PID，累计编码位置控制)
+  MotorCtrl_Init(&p_push_rod->motor2_ctrl, \
+                 MOTOR_CTRL_PID_DOUBLE, \
+                 MOTOR_CTRL_OUT_PID | MOTOR_CTRL_OUT_FEEDFWD, \
+                 p_init->motor2_max_out, \
+                 &p_push_rod->motor2);
+  MotorCtrl_SetFeedForward(&p_push_rod->motor2_ctrl, _PushRod_Motor2_FeedForward);
+
+  // 初始化累计编码误差PID
+  PID_Init(&p_push_rod->err_pid, &p_init->err_pid_params);
+
+  // 绑定电机2的累计编码反馈
+  MotorCtrl_ExternalPid_Init(&p_push_rod->motor2_ctrl, \
+                             &p_push_rod->motor2.processed_measure.pos_total_ecd_f, \
+                             &p_init->motor2_pos_params);
+  MotorCtrl_InternalPid_Init(&p_push_rod->motor2_ctrl, \
+                             &p_push_rod->motor2.processed_measure.spd_rpm_f, \
+                             &p_init->motor2_spd_params);
+
+  // 失能电机控制
+  MotorCtrl_Disable(&p_push_rod->motor1_ctrl);
+  MotorCtrl_Disable(&p_push_rod->motor2_ctrl);
+  DJI_Motor_Disable(&p_push_rod->motor1);
+  DJI_Motor_Disable(&p_push_rod->motor2);
+}
+
+/// @brief 设置推杆目标累计编码值
+void PushRod_SetTarget(PushRod_t *p_push_rod, float target_ecd)
+{
+  if (p_push_rod == NULL || p_push_rod->state != PUSH_ROD_STATE_ENABLE)
   {
-    if (p_rod->is_calibrated)
+    return;
+  }
+
+  if (target_ecd > PUSH_ROD_MAX_ECD) {
+    target_ecd = PUSH_ROD_MAX_ECD;
+  }
+  else if (target_ecd < PUSH_ROD_MIN_ECD) {
+    target_ecd = PUSH_ROD_MIN_ECD;
+  }
+
+  p_push_rod->target_total_ecd = RampPlanner(p_push_rod->target_total_ecd, target_ecd, 100, 100);
+  // 设置电机目标值
+  MotorCtrl_SetTarget(&p_push_rod->motor1_ctrl, p_push_rod->target_total_ecd);
+  MotorCtrl_SetTarget(&p_push_rod->motor2_ctrl, p_push_rod->target_total_ecd);
+}
+
+/// @brief 推杆控制计算
+void PushRod_Calc(PushRod_t *p_push_rod)
+{
+  if (p_push_rod == NULL)
+  {
+    return;
+  }
+
+  switch (p_push_rod->state)
+  {
+  case PUSH_ROD_STATE_DISABLE:
+  {
+    // 失能状态，不做任何处理
+    break;
+  }
+
+  case PUSH_ROD_STATE_CALIBRATING:
+  {
+    // 校准中状态
+    p_push_rod->calib_count++;
+
+    // 给两个电机设置校准电流
+    DJI_Motor_SetCmd(&p_push_rod->motor1, p_push_rod->calib_current);
+    DJI_Motor_SetCmd(&p_push_rod->motor2, p_push_rod->calib_current);
+
+    // 检查是否达到校准目标计数
+    if (p_push_rod->calib_count >= p_push_rod->calib_target_count)
     {
-      p_rod->need_calib_2 = 1;
-      p_rod->is_calibrated = 0;
-      PushRod_Disable(p_rod);
+      // 校准完成，将当前累计编码值设为原始值 (当前单圈编码值)
+      // 电机1校准
+      p_push_rod->motor1.processed_measure.pos_total_ecd = p_push_rod->motor1.processed_measure.pos_ecd;
+      p_push_rod->motor1.processed_measure.pos_total_ecd_f = (float)p_push_rod->motor1.processed_measure.pos_ecd;
+      p_push_rod->motor1.processed_measure.pos_last_ecd = p_push_rod->motor1.processed_measure.pos_ecd;
+
+      // 电机2校准 (与电机1保持一致)
+      p_push_rod->motor2.processed_measure.pos_total_ecd = p_push_rod->motor1.processed_measure.pos_total_ecd;
+      p_push_rod->motor2.processed_measure.pos_total_ecd_f = p_push_rod->motor1.processed_measure.pos_total_ecd_f;
+      p_push_rod->motor2.processed_measure.pos_last_ecd = p_push_rod->motor2.processed_measure.pos_ecd;
+
+      // 重置目标值为当前校准后的位置
+      p_push_rod->target_total_ecd = p_push_rod->motor1.processed_measure.pos_total_ecd_f;
+      MotorCtrl_SetTarget(&p_push_rod->motor1_ctrl, p_push_rod->target_total_ecd);
+      MotorCtrl_SetTarget(&p_push_rod->motor2_ctrl, p_push_rod->target_total_ecd);
+
+      // 退出校准中模式，变为使能模式
+      p_push_rod->state = PUSH_ROD_STATE_ENABLE;
+      MotorCtrl_Enable(&p_push_rod->motor1_ctrl);
+      MotorCtrl_Enable(&p_push_rod->motor2_ctrl);
+      p_push_rod->calib_count = 0;
     }
+
+    break;
   }
 
-  // 如果需要校准且当前是使能状态，强制进入校准
-  if ((p_rod->need_calib_1 || p_rod->need_calib_2) && 
-       p_rod->state == PUSH_ROD_STATE_ENABLE)
+  case PUSH_ROD_STATE_ENABLE:
   {
-    p_rod->state = PUSH_ROD_STATE_CALIBRATING;
+    // 使能状态，正常控制
+
+    // 同步双电机累计编码误差
+    _PushRod_SyncMotorEcdError(p_push_rod);
+
+    // 电机1计算并设定控制值
+    MotorCtrl_Calc(&p_push_rod->motor1_ctrl);
+    DJI_Motor_SetCmd(&p_push_rod->motor1, (int16_t)p_push_rod->motor1_ctrl.final_out);
+
+    // 电机2计算并设定控制值
+    MotorCtrl_Calc(&p_push_rod->motor2_ctrl);
+    DJI_Motor_SetCmd(&p_push_rod->motor2, (int16_t)p_push_rod->motor2_ctrl.final_out);
+
+    break;
+  }
+
+  default:
+    break;
   }
 }
 
-void PushRod_Init(PushRod_t *const p_rod, const PushRod_Init_t *const init)
+/// @brief 推杆累计编码校准 (使能模式下调用)
+void PushRod_Calibrate(PushRod_t *p_push_rod)
 {
-  // 检查指针
-  if (p_rod == NULL || init == NULL)
+  if (p_push_rod == NULL)
   {
-    while(1); // 错误死循环
-  }
-
-  memset(p_rod, 0, sizeof(PushRod_t));
-
-  // 1. 初始化基础参数
-  p_rod->state = PUSH_ROD_STATE_DISABLE;
-  p_rod->max_allowed_err = init->max_allowed_err;
-  p_rod->gravity_feedforward = init->gravity_feedforward;
-  p_rod->offline_timeout = init->offline_timeout;
-  
-  // 标记需要初始校准
-  p_rod->need_calib_1 = 1;
-  p_rod->need_calib_2 = 1;
-  p_rod->is_calibrated = 0;
-
-  // 2. 初始化电机1
-  DJI_Motor_Init_t motor_init_1;
-  motor_init_1.hcan = init->hcan_1;
-  motor_init_1.type = DJI_MOTOR_TYPE_M3508;
-  motor_init_1.tx_id = init->tx_id_1;
-  motor_init_1.rx_id = init->rx_id_1;
-  motor_init_1.dir = init->dir_1;
-  motor_init_1.zero_offset = init->zero_offset_1;
-  motor_init_1.MotorRxCallback = _PushRod_MotorRxCallback;
-  motor_init_1.p_owner_moudle = p_rod;
-  DJI_Motor_Init(&p_rod->motor_1, &motor_init_1);
-
-  // 3. 初始化电机2
-  DJI_Motor_Init_t motor_init_2;
-  motor_init_2.hcan = init->hcan_2;
-  motor_init_2.type = DJI_MOTOR_TYPE_M3508;
-  motor_init_2.tx_id = init->tx_id_2;
-  motor_init_2.rx_id = init->rx_id_2;
-  motor_init_2.dir = init->dir_2;
-  motor_init_2.zero_offset = init->zero_offset_2;
-  motor_init_2.MotorRxCallback = _PushRod_MotorRxCallback;
-  motor_init_2.p_owner_moudle = p_rod;
-  DJI_Motor_Init(&p_rod->motor_2, &motor_init_2);
-
-  // 4. 初始化电机1控制器 (单环PID)
-  // 注意：这里我们只启用PID，前馈将在PushRod_Calc中手动叠加
-  uint32_t out_mask = MOTOR_CTRL_OUT_PID;
-  
-  MotorCtrl_Init(&p_rod->ctrl_1, MOTOR_CTRL_PID_INTERNAL, out_mask, init->max_out, &p_rod->motor_1);
-  
-  float pid_data_1[5] = {init->pos_kp, init->pos_ki, init->pos_kd, init->pos_out_limit, init->pos_int_limit};
-  MotorCtrl_InternalPid_Init(&p_rod->ctrl_1, PID_POSITION, 
-                              &p_rod->motor_1.processed_measure.pos_total_ecd_f, pid_data_1);
-
-  // 5. 初始化电机2控制器
-  MotorCtrl_Init(&p_rod->ctrl_2, MOTOR_CTRL_PID_INTERNAL, out_mask, init->max_out, &p_rod->motor_2);
-  
-  float pid_data_2[5] = {init->pos_kp, init->pos_ki, init->pos_kd, init->pos_out_limit, init->pos_int_limit};
-  MotorCtrl_InternalPid_Init(&p_rod->ctrl_2, PID_POSITION, 
-                              &p_rod->motor_2.processed_measure.pos_total_ecd_f, pid_data_2);
-
-  // 6. 初始化误差PID
-  PID_Init(&p_rod->err_pid, PID_POSITION, init->err_kp, init->err_ki, init->err_kd, init->err_out_limit, init->err_int_limit);
-}
-
-void PushRod_Enable(PushRod_t *const p_rod)
-{
-  if (p_rod == NULL) return;
-
-  // 如果未校准，先进入校准模式
-  if (!p_rod->is_calibrated || p_rod->need_calib_1 || p_rod->need_calib_2)
-  {
-    p_rod->state = PUSH_ROD_STATE_CALIBRATING;
-  }
-  else
-  {
-    p_rod->state = PUSH_ROD_STATE_ENABLE;
-  }
-
-  DJI_Motor_Enable(&p_rod->motor_1);
-  DJI_Motor_Enable(&p_rod->motor_2);
-  MotorCtrl_Enable(&p_rod->ctrl_1);
-  MotorCtrl_Enable(&p_rod->ctrl_2);
-}
-
-void PushRod_Disable(PushRod_t *const p_rod)
-{
-  if (p_rod == NULL) return;
-
-  p_rod->state = PUSH_ROD_STATE_DISABLE;
-  
-  DJI_Motor_Disable(&p_rod->motor_1);
-  DJI_Motor_Disable(&p_rod->motor_2);
-  MotorCtrl_Disable(&p_rod->ctrl_1);
-  MotorCtrl_Disable(&p_rod->ctrl_2);
-  
-  DJI_Motor_SetCmd(&p_rod->motor_1, 0);
-  DJI_Motor_SetCmd(&p_rod->motor_2, 0);
-}
-
-void PushRod_SetTarget(PushRod_t *const p_rod, float target)
-{
-  if (p_rod == NULL) return;
-  p_rod->target_total_ecd = target;
-}
-
-void PushRod_Calc(PushRod_t *const p_rod)
-{
-  if (p_rod == NULL) return;
-
-  // 掉电检测
-  _PushRod_OfflineDetect(p_rod);
-
-  // 状态机处理
-  if (p_rod->state == PUSH_ROD_STATE_DISABLE)
-  {
-    // 确保电机停止
-    DJI_Motor_SetCmd(&p_rod->motor_1, 0);
-    DJI_Motor_SetCmd(&p_rod->motor_2, 0);
-    return;
-  }
-  else if (p_rod->state == PUSH_ROD_STATE_CALIBRATING)
-  {
-    // 校准逻辑实现
-    // 给电机发一个不大的电流持续一定时间，再将当前累计编码归0
-    // 注意：在此状态下，需要手动调用 DJI_Motor_SetCmd 和 DJI_Motor_GroupTransmit 来发送电流
-    // 校准完成后，记得清除 need_calib_1/2 标志，设置 is_calibrated = 1，并将 state 切回 ENABLE
     return;
   }
 
-  // --- 以下为正常使能控制逻辑 ---
+  // 只有在使能模式下才能进入校准
+  if (p_push_rod->state != PUSH_ROD_STATE_ENABLE)
+  {
+    return;
+  }
 
-  // 计算双电机误差 (电机1 - 电机2)
-  float err = p_rod->motor_1.processed_measure.pos_total_ecd_f - 
-              p_rod->motor_2.processed_measure.pos_total_ecd_f;
+  // 失能电机控制模块
+  MotorCtrl_Disable(&p_push_rod->motor1_ctrl);
+  MotorCtrl_Disable(&p_push_rod->motor2_ctrl);
 
-  // 计算误差PID (目标是让误差为0)
-  PID_Calc(&p_rod->err_pid, err, 0.0f);
-  p_rod->err_pid_out = p_rod->err_pid.out;
+  // 重置校准计数
+  p_push_rod->calib_count = 0;
 
-  // 获取重力前馈
-  // 重力前馈完善
-  // 这里可以根据当前位置、速度等动态计算 gravity_ff
-  // 例如：float gravity_ff = p_rod->gravity_feedforward * (1.0f + p_rod->motor_1.processed_measure.pos_total_ecd_f / 10000.0f);
-  float gravity_ff = p_rod->gravity_feedforward; // 当前默认使用固定值
-
-  // 设置主控制目标
-  MotorCtrl_SetTarget(&p_rod->ctrl_1, p_rod->target_total_ecd);
-  MotorCtrl_SetTarget(&p_rod->ctrl_2, p_rod->target_total_ecd);
-
-  // 计算位置环PID
-  MotorCtrl_Calc(&p_rod->ctrl_1);
-  MotorCtrl_Calc(&p_rod->ctrl_2);
-
-  // 构建总前馈
-  // 策略：
-  // 电机1前馈 = 重力前馈 - 误差PID输出 (如果电机1超前，减小出力)
-  // 电机2前馈 = 重力前馈 + 误差PID输出 (如果电机1超前，增加电机2出力)
-  float ff_1 = gravity_ff - p_rod->err_pid_out;
-  float ff_2 = gravity_ff + p_rod->err_pid_out;
-
-  // 手动叠加前馈并限幅
-  float final_out_1 = p_rod->ctrl_1.final_out + ff_1;
-  float final_out_2 = p_rod->ctrl_2.final_out + ff_2;
-
-  // 限幅
-  if (final_out_1 > p_rod->ctrl_1.max_out) final_out_1 = p_rod->ctrl_1.max_out;
-  if (final_out_1 < -p_rod->ctrl_1.max_out) final_out_1 = -p_rod->ctrl_1.max_out;
-  
-  if (final_out_2 > p_rod->ctrl_2.max_out) final_out_2 = p_rod->ctrl_2.max_out;
-  if (final_out_2 < -p_rod->ctrl_2.max_out) final_out_2 = -p_rod->ctrl_2.max_out;
-
-  // 发送指令
-  DJI_Motor_SetCmd(&p_rod->motor_1, (int16_t)final_out_1);
-  DJI_Motor_SetCmd(&p_rod->motor_2, (int16_t)final_out_2);
+  // 进入校准中状态
+  p_push_rod->state = PUSH_ROD_STATE_CALIBRATING;
 }
 
-void PushRod_StartCalibration(PushRod_t *const p_rod)
+/// @brief 使能推杆控制
+void PushRod_Enable(PushRod_t *p_push_rod)
 {
-  if (p_rod == NULL) return;
-  p_rod->need_calib_1 = 1;
-  p_rod->need_calib_2 = 1;
-  p_rod->is_calibrated = 0;
-  p_rod->state = PUSH_ROD_STATE_CALIBRATING;
+  if (p_push_rod == NULL)
+  {
+    return;
+  }
+
+  // 如果在校准中，不切换状态
+  if (p_push_rod->state == PUSH_ROD_STATE_CALIBRATING)
+  {
+    return;
+  }
+
+  p_push_rod->state = PUSH_ROD_STATE_ENABLE;
+  DJI_Motor_Enable(&p_push_rod->motor1);
+  DJI_Motor_Enable(&p_push_rod->motor2);
+  MotorCtrl_Enable(&p_push_rod->motor1_ctrl);
+  MotorCtrl_Enable(&p_push_rod->motor2_ctrl);
 }
 
-// --- 内部回调函数实现 ---
-
-static void _PushRod_MotorRxCallback(DJI_Motor_t *p_motor)
+/// @brief 失能推杆控制
+void PushRod_Disable(PushRod_t *p_push_rod)
 {
-  if (p_motor == NULL || p_motor->p_owner_moudle == NULL) return;
-  
-  PushRod_t *p_rod = (PushRod_t *)p_motor->p_owner_moudle;
-  uint32_t tick = osKernelGetTickCount();
+  if (p_push_rod == NULL)
+  {
+    return;
+  }
 
-  // 判断是哪个电机的回调
-  if (p_motor == &p_rod->motor_1)
-  {
-    p_rod->last_update_tick_1 = tick;
-  }
-  else if (p_motor == &p_rod->motor_2)
-  {
-    p_rod->last_update_tick_2 = tick;
-  }
+  // 无论当前状态如何，都切换到失能
+  p_push_rod->state = PUSH_ROD_STATE_DISABLE;
+  MotorCtrl_Disable(&p_push_rod->motor1_ctrl);
+  MotorCtrl_Disable(&p_push_rod->motor2_ctrl);
+  DJI_Motor_Disable(&p_push_rod->motor1);
+  DJI_Motor_Disable(&p_push_rod->motor2);
+
+  // 清零电机控制命令
+  DJI_Motor_SetCmd(&p_push_rod->motor1, 0);
+  DJI_Motor_SetCmd(&p_push_rod->motor2, 0);
+
+  // 重置校准计数
+  p_push_rod->calib_count = 0;
 }

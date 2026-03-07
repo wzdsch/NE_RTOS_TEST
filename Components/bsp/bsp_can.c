@@ -7,7 +7,7 @@
  * @Author: Jiang Tianhang 1919524828@qq.com
  * @Date: 2025-11-16 18:39:25
  * @LastEditors: Jiang Tianhang 1919524828@qq.com
- * @LastEditTime: 2026-02-05 18:58:37
+ * @LastEditTime: 2026-03-04 17:20:54
  * @FilePath: \MDK-ARMd:\RoboMaster\code\NE_RTOS_TEST\Components\bsp\bsp_can.c
  * @Description: 
  */
@@ -157,16 +157,17 @@ void BSP_CAN_Tx_Init(BSP_CAN_TxInstance *p_tx_instance, CAN_HandleTypeDef *p_hca
   p_tx_instance->tx_header.RTR = RTR;
 }
 
-uint8_t BSP_CAN_Transmit(BSP_CAN_TxInstance *const tx_instance)
+HAL_StatusTypeDef BSP_CAN_Transmit(BSP_CAN_TxInstance *const tx_instance)
 {
   static uint32_t busy_count;
-  if (HAL_CAN_AddTxMessage(tx_instance->p_can_handle, &tx_instance->tx_header, tx_instance->tx_buf, &tx_instance->tx_mailbox) != HAL_OK)
+  HAL_StatusTypeDef status = HAL_OK;
+  if ((status = HAL_CAN_AddTxMessage(tx_instance->p_can_handle, &tx_instance->tx_header, tx_instance->tx_buf, &tx_instance->tx_mailbox)) != HAL_OK)
   {
     // 发送失败就直接返回，不采用阻塞发送
     busy_count++;
-    return 0;
+    return status;
   }
-  return 1; // 发送成功
+  return status; // 发送成功
 }
 
 inline void BSP_CAN_SetTxDLC(BSP_CAN_TxInstance *p_tx_instance, uint8_t length)

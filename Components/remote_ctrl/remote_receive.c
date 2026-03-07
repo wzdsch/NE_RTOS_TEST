@@ -7,7 +7,7 @@
  * @Author: Jiang Tianhang 1919524828@qq.com
  * @Date: 2026-01-07 11:36:00
  * @LastEditors: Jiang Tianhang 1919524828@qq.com
- * @LastEditTime: 2026-01-28 23:09:00
+ * @LastEditTime: 2026-03-07 14:40:52
  * @FilePath: \NE_RTOS_TEST\Components\remote_ctrl\remote_receive.c
  * @Description: This file is by Guo Hongting
  */
@@ -37,10 +37,10 @@ __attribute__((section(".sram2"))) uint8_t *fsi6_completed_buf;            // �
 void GetFSI6Data(FSI6Data_t *fsi6Data, uint8_t *rxBuffer)
 {
   fsi6Data->fsi6_start = rxBuffer[0];
-  fsi6Data->left_x = ((uint16_t)rxBuffer[1] >> 0 | ((uint16_t)rxBuffer[2] << 8)) & 0x07FF;
-  fsi6Data->left_y = ((uint16_t)rxBuffer[2] >> 3 | ((uint16_t)rxBuffer[3] << 5)) & 0x07FF;
-  fsi6Data->right_y = ((uint16_t)rxBuffer[3] >> 6 | ((uint16_t)rxBuffer[4] << 2) | (uint16_t)rxBuffer[5] << 10) & 0x07FF;
-  fsi6Data->right_x = ((uint16_t)rxBuffer[5] >> 1 | ((uint16_t)rxBuffer[6] << 7)) & 0x07FF;
+  fsi6Data->right_x = ((uint16_t)rxBuffer[1] >> 0 | ((uint16_t)rxBuffer[2] << 8)) & 0x07FF;
+  fsi6Data->right_y = ((uint16_t)rxBuffer[2] >> 3 | ((uint16_t)rxBuffer[3] << 5)) & 0x07FF;
+  fsi6Data->left_y = ((uint16_t)rxBuffer[3] >> 6 | ((uint16_t)rxBuffer[4] << 2) | (uint16_t)rxBuffer[5] << 10) & 0x07FF;
+  fsi6Data->left_x = ((uint16_t)rxBuffer[5] >> 1 | ((uint16_t)rxBuffer[6] << 7)) & 0x07FF;
   fsi6Data->left_ch1 = ((uint16_t)rxBuffer[6] >> 4 | ((uint16_t)rxBuffer[7] << 4)) & 0x07FF;
   fsi6Data->left_ch2 = ((uint16_t)rxBuffer[7] >> 7 | ((uint16_t)rxBuffer[8] << 1) | (uint16_t)rxBuffer[9] << 9) & 0x07FF;
   fsi6Data->right_ch2 = ((uint16_t)rxBuffer[9] >> 2 | ((uint16_t)rxBuffer[10] << 6)) & 0x07FF;
@@ -67,12 +67,6 @@ void FSI6_BUS_IDLEHandler_Init()
   // 关闭DMA传输
   // 确保后续配置不会受到之前DMA操作的影响
   __HAL_DMA_DISABLE(&hdma_usart3_rx);
-  // 循环检查DMA是否完全关闭
-  // 不断尝试关闭DMA，直到DMA控制寄存器的使能位被清零
-  while (hdma_usart3_rx.Instance->CR & DMA_SxCR_EN)
-  {
-    __HAL_DMA_DISABLE(&hdma_usart3_rx);
-  }
   // 设置DMA的外设地址
   // 将DMA的外设地址设置为USART3的数据寄存器地址，DMA从该寄存器读取数据
   hdma_usart3_rx.Instance->PAR = (uint32_t)&(USART3->DR);

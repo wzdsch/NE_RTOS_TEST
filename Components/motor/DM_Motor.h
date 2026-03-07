@@ -7,7 +7,7 @@
  * @Author: Jiang Tianhang 1919524828@qq.com
  * @Date: 2025-10-29 12:12:13
  * @LastEditors: Jiang Tianhang 1919524828@qq.com
- * @LastEditTime: 2026-01-23 23:48:07
+ * @LastEditTime: 2026-02-28 19:13:58
  * @FilePath: \NE_RTOS_TEST\Components\motor\DM_Motor.h
  * @Description: 
  */
@@ -135,7 +135,7 @@ typedef struct {
 /// @brief 初始化达妙电机
 /// @param p_motor 电机指针
 /// @param init 初始化参数
-void DM_Motor_Init(DM_Motor_t *const p_motor, DM_Motor_Init_t* init);
+void DM_Motor_Init(DM_Motor_t *const p_motor, DM_Motor_Init_t* p_init);
 
 // ------------------------------ 特殊can报文 ------------------------------
 

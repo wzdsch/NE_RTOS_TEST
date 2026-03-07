@@ -1,3 +1,11 @@
+/*
+ * @Author: Jiang Tianhang 1919524828@qq.com
+ * @Date: 2026-02-17 19:36:22
+ * @LastEditors: Jiang Tianhang 1919524828@qq.com
+ * @LastEditTime: 2026-02-28 13:48:33
+ * @FilePath: \NE_RTOS_TEST\Components\moudle\mecnum_chassis.c
+ * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
+ */
 #include "mecnum_chassis.h"
 
 // sin/cos四分之PI
@@ -23,10 +31,10 @@ void Chassis_Init(Chassis_t* p_chassis, Chassis_Init_t* p_init) {
   MotorCtrl_Init(&p_chassis->motor_lb_ctrl, MOTOR_CTRL_PID_INTERNAL, MOTOR_CTRL_OUT_POSTPROCESS, 16384.f, p_chassis);
   MotorCtrl_Init(&p_chassis->motor_rb_ctrl, MOTOR_CTRL_PID_INTERNAL, MOTOR_CTRL_OUT_POSTPROCESS, 16384.f, p_chassis);
 
-  MotorCtrl_InternalPid_Init(&p_chassis->motor_lf_ctrl, PID_POSITION, &p_chassis->motor_lf.processed_measure.spd_rpm_f, p_init->pid_motor_lf);
-  MotorCtrl_InternalPid_Init(&p_chassis->motor_rf_ctrl, PID_POSITION, &p_chassis->motor_rf.processed_measure.spd_rpm_f, p_init->pid_motor_rf);
-  MotorCtrl_InternalPid_Init(&p_chassis->motor_lb_ctrl, PID_POSITION, &p_chassis->motor_lb.processed_measure.spd_rpm_f, p_init->pid_motor_lb);
-  MotorCtrl_InternalPid_Init(&p_chassis->motor_rb_ctrl, PID_POSITION, &p_chassis->motor_rb.processed_measure.spd_rpm_f, p_init->pid_motor_rb);
+  MotorCtrl_InternalPid_Init(&p_chassis->motor_lf_ctrl, &p_chassis->motor_lf.processed_measure.spd_rpm_f, &p_init->pid_motor_lf);
+  MotorCtrl_InternalPid_Init(&p_chassis->motor_rf_ctrl, &p_chassis->motor_rf.processed_measure.spd_rpm_f, &p_init->pid_motor_rf);
+  MotorCtrl_InternalPid_Init(&p_chassis->motor_lb_ctrl, &p_chassis->motor_lb.processed_measure.spd_rpm_f, &p_init->pid_motor_lb);
+  MotorCtrl_InternalPid_Init(&p_chassis->motor_rb_ctrl, &p_chassis->motor_rb.processed_measure.spd_rpm_f, &p_init->pid_motor_rb);
 
   MotorCtrl_SetPostProcess(&p_chassis->motor_lf_ctrl, Chassis_PowerLimit);
   MotorCtrl_SetPostProcess(&p_chassis->motor_rf_ctrl, Chassis_PowerLimit);

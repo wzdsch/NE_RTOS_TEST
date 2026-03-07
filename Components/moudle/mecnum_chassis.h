@@ -36,10 +36,10 @@ typedef struct {
   DJI_Motor_Init_t motor_rf;
   DJI_Motor_Init_t motor_lb;
   DJI_Motor_Init_t motor_rb;
-  float pid_motor_lf[5]; // {kp, ki, kd, out_max, i_max}
-  float pid_motor_rf[5]; // {kp, ki, kd, out_max, i_max}
-  float pid_motor_lb[5]; // {kp, ki, kd, out_max, i_max}
-  float pid_motor_rb[5]; // {kp, ki, kd, out_max, i_max}
+  PID_Init_t pid_motor_lf;
+  PID_Init_t pid_motor_rf;
+  PID_Init_t pid_motor_lb;
+  PID_Init_t pid_motor_rb;
 } Chassis_Init_t;
 
 /// @brief 底盘初始化

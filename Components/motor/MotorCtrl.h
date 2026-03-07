@@ -7,7 +7,7 @@
  * @Author: Jiang Tianhang 1919524828@qq.com
  * @Date: 2025-10-29 12:11:24
  * @LastEditors: Jiang Tianhang 1919524828@qq.com
- * @LastEditTime: 2026-01-23 23:46:12
+ * @LastEditTime: 2026-03-06 19:40:46
  * @FilePath: \NE_RTOS_TEST\Components\motor\MotorCtrl.h
  * @Description: 
  */
@@ -66,7 +66,7 @@ typedef struct _MotorCtrl_t
 
   // 电机设定输出, 使用按位或连接, 表示总输出把这些量加起来
   // 具体输出值, 用按位或连接以下值:
-  // MOTOR_COMMON_OUT_PID, MOTOR_COMMON_OUT_CUSTOM, MOTOR_COMMON_OUT_FEEDFWD, MOTOR_COMMON_OUT_PREPROCESS, MOTOR_COMMON_OUT_POSTPROCESS
+  // MOTOR_CTRL_OUT_PID, MOTOR_CTRL_OUT_CUSTOM, MOTOR_CTRL_OUT_FEEDFWD, MOTOR_CTRL_OUT_PREPROCESS, MOTOR_CTRL_OUT_POSTPROCESS
   uint32_t out_values;
 
   float max_out; // 最终总输出限幅(力矩)
@@ -85,17 +85,15 @@ void MotorCtrl_Init(MotorCtrl_t *p_motor_ctrl, MotorCtrl_PidMode_e ctrl_mode, ui
 
 /// @brief 双环pid外环初始化
 /// @param p_motor_ctrl 电机控制结构体指针
-/// @param pid_mode pid模式 (位置式 / 增量式)
 /// @param p_ref 反馈值指针
-/// @param p_pid_data pid数据 数组 {Kp, Ki, Kd, out_limit, integral_limit}
-void MotorCtrl_ExternalPid_Init(MotorCtrl_t *p_motor_ctrl, PID_MODE_e pid_mode, float *p_ref, float p_pid_data[5]);
+/// @param p_pid_data pid数据
+void MotorCtrl_ExternalPid_Init(MotorCtrl_t *p_motor_ctrl, float *p_ref, PID_Init_t* p_pid_data);
 
 /// @brief 双环pid内环初始化 / 单闭环pid初始化
 /// @param p_motor_ctrl 电机控制结构体指针
-/// @param pid_mode pid模式 (位置式 / 增量式)
 /// @param p_ref 反馈值指针
-/// @param p_pid_data pid数据 数组 {Kp, Ki, Kd, out_limit, integral_limit}
-void MotorCtrl_InternalPid_Init(MotorCtrl_t *p_motor_ctrl, PID_MODE_e pid_mode, float *p_ref, float p_pid_data[5]);
+/// @param p_pid_data pid数据
+void MotorCtrl_InternalPid_Init(MotorCtrl_t *p_motor_ctrl, float *p_ref, PID_Init_t* p_pid_data);
 
 /// @brief 设置自定义控制算法
 /// @param p_motor_ctrl 电机控制结构体指针

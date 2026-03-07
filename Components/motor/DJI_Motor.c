@@ -408,9 +408,20 @@ void _DJI_Motor_UnpackRXD(DJI_Motor_t *p_motor)
   }
 
   if (p_motor->dir == DJI_MOTOR_DIR_REVERSE) {
-    tmp_ecd = DJI_MOTOR_ECD_CMD_ROUND - p_motor->processed_measure.pos_ecd;
+    tmp_ecd = DJI_MOTOR_ECD_CMD_ROUND - tmp_ecd;
+
     p_motor->processed_measure.spd_rpm = -p_motor->measure.spd_rpm;
+    p_motor->processed_measure.spd_rpm_f = -p_motor->measure.spd_rpm;
+
     p_motor->processed_measure.tor_crt_ecd = -p_motor->measure.tor_crt_ecd;
+    p_motor->processed_measure.tor_crt_ecd_f = -p_motor->measure.tor_crt_ecd;
+  }
+  else {
+    p_motor->processed_measure.spd_rpm = p_motor->measure.spd_rpm;
+    p_motor->processed_measure.spd_rpm_f = p_motor->measure.spd_rpm;
+
+    p_motor->processed_measure.tor_crt_ecd = p_motor->measure.tor_crt_ecd;
+    p_motor->processed_measure.tor_crt_ecd_f = p_motor->measure.tor_crt_ecd;
   }
   p_motor->processed_measure.pos_ecd = tmp_ecd;
   p_motor->processed_measure.pos_ecd_f = (float)tmp_ecd;

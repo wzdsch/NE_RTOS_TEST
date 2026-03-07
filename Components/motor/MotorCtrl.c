@@ -7,7 +7,7 @@
  * @Author: Jiang Tianhang 1919524828@qq.com
  * @Date: 2025-10-29 12:09:26
  * @LastEditors: Jiang Tianhang 1919524828@qq.com
- * @LastEditTime: 2026-01-23 23:46:00
+ * @LastEditTime: 2026-02-28 13:57:17
  * @FilePath: \NE_RTOS_TEST\Components\motor\MotorCtrl.c
  * @Description: 
  */
@@ -51,7 +51,7 @@ void MotorCtrl_Init(MotorCtrl_t *p_motor_ctrl, MotorCtrl_PidMode_e ctrl_mode, ui
   memset(&p_motor_ctrl->pid_internal, 0, sizeof(p_motor_ctrl->pid_internal));
 }
 
-void MotorCtrl_ExternalPid_Init(MotorCtrl_t *p_motor_ctrl, PID_MODE_e pid_mode, float *p_ref, float p_pid_data[5]) {
+void MotorCtrl_ExternalPid_Init(MotorCtrl_t *p_motor_ctrl, float *p_ref, PID_Init_t* p_pid_data) {
   if (p_motor_ctrl == NULL || p_ref == NULL || p_pid_data == NULL)
   {
     while(1) {
@@ -60,10 +60,10 @@ void MotorCtrl_ExternalPid_Init(MotorCtrl_t *p_motor_ctrl, PID_MODE_e pid_mode, 
   }
 
   p_motor_ctrl->p_pid_ext_fdb = p_ref;
-  PID_Init(&p_motor_ctrl->pid_external, pid_mode, p_pid_data[0], p_pid_data[1], p_pid_data[2], p_pid_data[3], p_pid_data[4]);
+  PID_Init(&p_motor_ctrl->pid_external, p_pid_data);
 }
 
-void MotorCtrl_InternalPid_Init(MotorCtrl_t *p_motor_ctrl, PID_MODE_e pid_mode, float *p_ref, float p_pid_data[5]) {
+void MotorCtrl_InternalPid_Init(MotorCtrl_t *p_motor_ctrl, float *p_ref, PID_Init_t* p_pid_data) {
   if (p_motor_ctrl == NULL || p_ref == NULL || p_pid_data == NULL)
   {
     while(1) {
@@ -72,7 +72,7 @@ void MotorCtrl_InternalPid_Init(MotorCtrl_t *p_motor_ctrl, PID_MODE_e pid_mode, 
   }
 
   p_motor_ctrl->p_pid_int_fdb = p_ref;
-  PID_Init(&p_motor_ctrl->pid_internal, pid_mode, p_pid_data[0], p_pid_data[1], p_pid_data[2], p_pid_data[3], p_pid_data[4]);
+  PID_Init(&p_motor_ctrl->pid_internal, p_pid_data);
 }
 
 float _MotorCtrl_PID_Calc(MotorCtrl_t *p_motor_ctrl)
@@ -106,9 +106,6 @@ void MotorCtrl_Calc(MotorCtrl_t *p_motor_ctrl)
       p_motor_ctrl->pre_process_out = p_motor_ctrl->pPreProcess(p_motor_ctrl);
     }
 
-    // 计算pid
-    p_motor_ctrl->pid_out = _MotorCtrl_PID_Calc(p_motor_ctrl);
-
     // 自定义控制算法
     if (p_motor_ctrl->pCustomCtrlAlgorithm != NULL)
     {
@@ -135,7 +132,8 @@ void MotorCtrl_Calc(MotorCtrl_t *p_motor_ctrl)
     }
     if (p_motor_ctrl->out_values & MOTOR_CTRL_OUT_PID)
     {
-      temp_out += p_motor_ctrl->pid_out;
+      // 计算PID
+      temp_out += (p_motor_ctrl->pid_out = _MotorCtrl_PID_Calc(p_motor_ctrl));
     }
     if (p_motor_ctrl->out_values & MOTOR_CTRL_OUT_PREPROCESS)
     {
