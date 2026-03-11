@@ -7,7 +7,7 @@
  * @Author: Jiang Tianhang 1919524828@qq.com
  * @Date: 2025-10-29 12:09:26
  * @LastEditors: Jiang Tianhang 1919524828@qq.com
- * @LastEditTime: 2026-02-28 13:57:17
+ * @LastEditTime: 2026-03-08 18:28:59
  * @FilePath: \NE_RTOS_TEST\Components\motor\MotorCtrl.c
  * @Description: 
  */
@@ -130,10 +130,11 @@ void MotorCtrl_Calc(MotorCtrl_t *p_motor_ctrl)
     {
       temp_out += p_motor_ctrl->feed_forward_out;
     }
+    float pid_out = p_motor_ctrl->pid_out = _MotorCtrl_PID_Calc(p_motor_ctrl);
     if (p_motor_ctrl->out_values & MOTOR_CTRL_OUT_PID)
     {
       // 计算PID
-      temp_out += (p_motor_ctrl->pid_out = _MotorCtrl_PID_Calc(p_motor_ctrl));
+      temp_out += pid_out;
     }
     if (p_motor_ctrl->out_values & MOTOR_CTRL_OUT_PREPROCESS)
     {

@@ -7,7 +7,7 @@
  * @Author: Jiang Tianhang 1919524828@qq.com
  * @Date: 2025-12-29 10:35:45
  * @LastEditors: Jiang Tianhang 1919524828@qq.com
- * @LastEditTime: 2026-03-07 19:00:37
+ * @LastEditTime: 2026-03-08 19:56:05
  * @FilePath: \NE_RTOS_TEST\Components\moudle\arm.c
  * @Description: 
  */
@@ -228,7 +228,8 @@ float _Arm_End1_GravertyFeedFwd(MotorCtrl_t *p_ctrl) {
 float _Arm_End2_GravertyFeedFwd(MotorCtrl_t *p_ctrl) {
   Arm_t* p_arm = (Arm_t *)(((DJI_Motor_t *)(p_ctrl->p_owner_moudle))->p_owner_moudle);
   return tau5 * arm_cos_f32(p_arm->pitch1_8009p.processed_measure.pos_rad + \
-                            JY_ME01.processed_angle * K_DEG_TO_RAD);
+                            JY_ME01.processed_angle * K_DEG_TO_RAD + \
+                            p_arm->real_end_pitch_rad * cos(p_arm->yaw1_8009p.processed_measure.pos_rad));
 }
 
 void _Arm_End_Motor_Callback(DJI_Motor_t *p_motor) {
