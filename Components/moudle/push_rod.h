@@ -15,32 +15,35 @@
 #include "DJI_Motor.h"
 #include "MotorCtrl.h"
 
+#define PUSH_ROD_MAX_POS 10000
+#define PUSH_ROD_MIN_POS 0
+
 /// @brief 推杆机构状态枚举
 typedef enum
 {
-    PUSH_ROD_STATE_DISABLE,    // 失能
-    PUSH_ROD_STATE_ENABLE,     // 使能
-    PUSH_ROD_STATE_CALIBRATING // 校准中
+  PUSH_ROD_STATE_DISABLE,    // 失能
+  PUSH_ROD_STATE_ENABLE,     // 使能
+  PUSH_ROD_STATE_CALIBRATING // 校准中
 } PushRod_State_e;
 
 /// @brief 推杆机构核心结构体
 typedef struct _PushRod_t
 {
-    PushRod_State_e state;                  // 推杆整体状态
-    DJI_Motor_t motor1;                     // 电机1指针 (主电机)
-    DJI_Motor_t motor2;                     // 电机2指针 (从电机)
-    MotorCtrl_t motor1_ctrl;                // 电机1控制模块
-    MotorCtrl_t motor2_ctrl;                // 电机2控制模块
-    
-    float target_total_ecd;                 // 推杆目标累计编码值
-    
-    // 校准相关变量
-    uint32_t calib_count;                   // 校准计数
-    uint32_t calib_target_count;            // 校准目标计数 (保持电流的时间)
-    int16_t calib_current;                  // 校准用电流 (编码值)
+  PushRod_State_e state;                  // 推杆整体状态
+  DJI_Motor_t motor1;                     // 电机1指针 (主电机)
+  DJI_Motor_t motor2;                     // 电机2指针 (从电机)
+  MotorCtrl_t motor1_ctrl;                // 电机1控制模块
+  MotorCtrl_t motor2_ctrl;                // 电机2控制模块
+  
+  float target_total_ecd;                 // 推杆目标累计编码值
+  
+  // 校准相关变量
+  uint32_t calib_count;                   // 校准计数
+  uint32_t calib_target_count;            // 校准目标计数 (保持电流的时间)
+  int16_t calib_current;                  // 校准用电流 (编码值)
 
-    int32_t err_total_ecd;                  // 两个电机累计编码差
-    Pid_t err_pid;                          // 两个电机累计编码差的修正
+  int32_t err_total_ecd;                  // 两个电机累计编码差
+  Pid_t err_pid;                          // 两个电机累计编码差的修正
 } PushRod_t;
 
 typedef struct {
@@ -56,8 +59,6 @@ typedef struct {
   int16_t calib_current;
   uint32_t calib_target_count;
 } PushRod_Init_t;
-
-extern PushRod_t push_rod;
 
 void PushRod_Init(PushRod_t *p_push_rod, PushRod_Init_t* p_init);
 

@@ -1,29 +1,45 @@
+
+/*
+ * @Author: Jiang Tianhang 1919524828@qq.com
+ * @Date: 2026-02-17 19:36:22
+ * @LastEditors: Jiang Tianhang 1919524828@qq.com
+ * @LastEditTime: 2026-03-12 20:31:13
+ * @FilePath: \proj_chassisd:\RoboMaster\code\Enginner\Components\moudle\can_custom_comm_protocol.h
+ * @Description: CAN自定义通信模块，通信结构体及打包/解包函数
+ */
 #ifndef CAN_CUSTOM_PROTOCOL_H
 #define CAN_CUSTOM_PROTOCOL_H
+
+#include "arm.h"
+#include "mecnum_chassis.h"
+#include "push_rod.h"
 
 #pragma pack(1)
 
 typedef struct {
-  float yaw1_tar;
-  float pitch1_tar;
-  float pitch2_tar;
-  float yaw2_tar;
-  float end_pitch_tar;
-  float end_yaw_tar;
-} CAN_Custom_ArmData_t;
+  ArmState_e state;
+  float yaw1_tar_rad;
+  float pitch1_tar_rad;
+  float pitch2_tar_deg;
+  float yaw2_tar_rad;
+  float end_pitch_tar_rad;
+  float end_yaw_tar_rad;
+} CAN_Custom_ArmCtrlData_t;
 
 typedef struct {
-  float left_x;
-  float left_y;
-  float right_x;
-  float right_y;
-} CAN_Custom_RCData_t;
+  Chassis_State_e state;
+  int16_t spd_x;
+  int16_t spd_y;
+  int16_t spd_z;
+} CAN_Custom_ChassisCtrlData_t;
+
+typedef struct {
+  PushRod_State_e state_f;  // 前推杆状态
+  PushRod_State_e state_b;  // 后推杆状态
+  uint8_t pos_f : 1;        // 前推杆伸出还是收回 1:伸出 0:收回
+  uint8_t pos_b : 1;        // 后推杆伸出还是收回 1:伸出 0:收回
+} CAN_Custom_PushRodsCtrlData_t;
 
 #pragma pack()
-
-extern CAN_Custom_RCData_t can_custom_rc_data;
-
-void CAN_Custom_RCData_Pack(void* p_buf);
-void CAN_Custom_RCData_Unpack(void* p_buf);
 
 #endif

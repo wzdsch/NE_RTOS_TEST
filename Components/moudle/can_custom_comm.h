@@ -52,7 +52,7 @@ typedef struct {
   uint32_t IDE;
   void* p_buf;
   uint8_t size;
-  void (*pUnpackFunc)(void* p_buf);
+  void (*pUnpackFunc)(void* p_buf); // 解包函数，可以为NULL
 } CAN_CustomComm_Rx_Init_t;
 
 void CAN_CustomComm_Tx_Init(CAN_CustomComm_Tx_t* p_tx, CAN_CustomComm_Tx_Init_t* init);

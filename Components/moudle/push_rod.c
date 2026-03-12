@@ -13,8 +13,6 @@
 #include <string.h>
 #include "tools.h"
 
-PushRod_t push_rod;
-
 #define PUSH_ROD_MAX_ECD 100000
 #define PUSH_ROD_MIN_ECD (-100000)
 

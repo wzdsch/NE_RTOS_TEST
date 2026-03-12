@@ -2,16 +2,14 @@
  * @Author: Jiang Tianhang 1919524828@qq.com
  * @Date: 2026-02-22 19:49:50
  * @LastEditors: Jiang Tianhang 1919524828@qq.com
- * @LastEditTime: 2026-03-08 17:50:53
+ * @LastEditTime: 2026-03-12 16:33:54
  * @FilePath: \NE_RTOS_TEST\Components\app\robot_logic.c
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
-#include "robot_logic.h"
+#include "moudle_logic.h"
 #include "remote_receive.h"
 #include "arm.h"
 #include "JY_ME01.h"
-#include "push_rod.h"
-#include "mecnum_chassis.h"
 
 #define RC_JOY_DEADBAND 10
 
@@ -55,26 +53,4 @@ void ArmLogic_RC() {
     }
   }
   last_state = arm.state;
-}
-
-void PushRod_Logic_RC() {
-  if (fsi6_data.right_ch2 == FSI6_CHANNEL_MIN) {
-    PushRod_Disable(&push_rod);
-  } else if (fsi6_data.right_ch2 == FSI6_CHANNEL_MID || fsi6_data.right_ch2 == FSI6_CHANNEL_MAX) {
-    if (fsi6_data.right_ch1 == FSI6_CHANNEL_MIN) {
-      PushRod_Enable(&push_rod);
-      PushRod_SetTarget(&push_rod, (RC_Joy_Process(fsi6_data.left_y, RC_JOY_DEADBAND) - FSI6_CHANNEL_MID) * 100.f);
-    }
-  }
-}
-
-void Chassis_Logic_RC() {
-  if (fsi6_data.right_ch2 == FSI6_CHANNEL_MIN) {
-    Chassis_Disable(&chassis);
-  } else if (fsi6_data.right_ch2 == FSI6_CHANNEL_MID || fsi6_data.right_ch2 == FSI6_CHANNEL_MAX) {
-      Chassis_Enable(&chassis);
-      Chassis_Calc(&chassis, (RC_Joy_Process(fsi6_data.left_x, RC_JOY_DEADBAND) - FSI6_CHANNEL_MID) * 3.f, \
-                             (RC_Joy_Process(fsi6_data.left_y, RC_JOY_DEADBAND) - FSI6_CHANNEL_MID) * 3.f, \
-                             (RC_Joy_Process(fsi6_data.right_x, RC_JOY_DEADBAND) - FSI6_CHANNEL_MID) * 3.f);
-  }
 }

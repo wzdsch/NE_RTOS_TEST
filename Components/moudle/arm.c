@@ -7,7 +7,7 @@
  * @Author: Jiang Tianhang 1919524828@qq.com
  * @Date: 2025-12-29 10:35:45
  * @LastEditors: Jiang Tianhang 1919524828@qq.com
- * @LastEditTime: 2026-03-08 19:56:05
+ * @LastEditTime: 2026-03-12 20:46:32
  * @FilePath: \NE_RTOS_TEST\Components\moudle\arm.c
  * @Description: 
  */
@@ -17,21 +17,6 @@
 
 #define K_DEG_TO_RAD 0.0174532925f
 
-#define ARM_YAW1_MAX_TARGET_RAD 3.f
-#define ARM_YAW1_MIN_TARGET_RAD -3.f
-
-#define ARM_PITCH1_MAX_TARGET_RAD 3.f
-#define ARM_PITCH1_MIN_TARGET_RAD -3.f
-
-#define ARM_PITCH2_MAX_TARGET_DEG 80.f
-#define ARM_PITCH2_MIN_TARGET_DEG 6.f
-
-#define ARM_YAW2_MAX_TARGET_RAD 6.28f
-#define ARM_YAW2_MIN_TARGET_RAD -6.28f
-
-#define ARM_END_PITCH_MAX_TARGET_RAD 1.57f
-#define ARM_END_PITCH_MIN_TARGET_RAD -1.57f
-
 // (PI / 4096) / (36 * 2)
 #define K_ARM_END_PITCH_ECD_TO_RAD 7.1017629068779686561022573587593e-6f
 #define K_ARM_END_PITCH_RAD_TO_ECD 140810.10773135111178681914527115f
@@ -40,8 +25,6 @@
 #define K_ARM_END_YAW_RAD_TO_ECD 281620.21546270222357363829054229f
 
 #define LIMIT(val, min, max) ((val) < (min) ? (min) : ((val) > (max) ? (max) : (val)))
-
-Arm_t arm;
 
 float _Arm_Yaw1_GravertyFeedFwd(MotorCtrl_t *motor_ctrl);
 float _Arm_Pitch1_GravertyFeedFwd(MotorCtrl_t *motor_ctrl);
@@ -54,7 +37,7 @@ void _Arm_End_Motor_Callback(DJI_Motor_t *p_motor);
 
 void Arm_Init(Arm_t *p_arm, ArmInit_t* p_init) {
   JY_ME01_Init(&JY_ME01, &p_init->JY_ME01);
-  p_arm->state = ARM_DISABLE;
+  p_arm->state = ARM_STATE_DISABLE;
   p_arm->load = ARM_LOAD_NONE;
 
   memset(&p_arm->target, 0, sizeof(ArmTarget_t));
@@ -108,38 +91,38 @@ inline void Arm_SetLoad(Arm_t *p_arm, ArmLoad_t load) {
   p_arm->load = load;
 }
 
-void Arm_SetTarget(Arm_t *p_arm) {
-  if (p_arm->state == ARM_DISABLE) {
-    p_arm->target.pitch1 = p_arm->pitch1_8009p.processed_measure.pos_rad;
-    p_arm->target.yaw1 = p_arm->yaw1_8009p.processed_measure.pos_rad;
-    p_arm->target.pitch2 = JY_ME01.processed_angle;
-    p_arm->target.yaw2 = p_arm->yaw2_4310.processed_measure.pos_rad;
-    p_arm->target.end_pitch = p_arm->real_end_pitch_rad;
-    p_arm->target.end_yaw = p_arm->real_end_yaw_rad;
+void Arm_SetTarget(Arm_t *p_arm, float yaw1_rad, float pitch1_rad, float pitch2_deg, float yaw2_rad, float end_pitch_rad, float end_yaw_rad) {
+  if (p_arm->state == ARM_STATE_DISABLE) {
+    p_arm->target.pitch1_rad = p_arm->pitch1_8009p.processed_measure.pos_rad;
+    p_arm->target.yaw1_rad = p_arm->yaw1_8009p.processed_measure.pos_rad;
+    p_arm->target.pitch2_deg = JY_ME01.processed_angle;
+    p_arm->target.yaw2_rad = p_arm->yaw2_4310.processed_measure.pos_rad;
+    p_arm->target.end_pitch_rad = p_arm->real_end_pitch_rad;
+    p_arm->target.end_yaw_rad = p_arm->real_end_yaw_rad;
   }
-  p_arm->target.yaw1 = LIMIT(p_arm->target.yaw1, ARM_YAW1_MIN_TARGET_RAD, ARM_YAW1_MAX_TARGET_RAD);
-  p_arm->target.pitch1 = LIMIT(p_arm->target.pitch1, ARM_PITCH1_MIN_TARGET_RAD, ARM_PITCH1_MAX_TARGET_RAD);
-  p_arm->target.pitch2 = LIMIT(p_arm->target.pitch2, ARM_PITCH2_MIN_TARGET_DEG, ARM_PITCH2_MAX_TARGET_DEG);
-  p_arm->target.yaw2 = LIMIT(p_arm->target.yaw2, ARM_YAW2_MIN_TARGET_RAD, ARM_YAW2_MAX_TARGET_RAD);
-  p_arm->target.end_pitch = LIMIT(p_arm->target.end_pitch, ARM_END_PITCH_MIN_TARGET_RAD, ARM_END_PITCH_MAX_TARGET_RAD);
-  // end_yaw_target没有物理限制
+  p_arm->target.yaw1_rad = LIMIT(yaw1_rad, p_arm->yaw1_min_rad, p_arm->yaw1_max_rad);
+  p_arm->target.pitch1_rad = LIMIT(pitch1_rad, p_arm->pitch1_min_rad, p_arm->pitch1_max_rad);
+  p_arm->target.pitch2_deg = LIMIT(pitch2_deg, p_arm->pitch2_min_deg, p_arm->pitch2_max_deg);
+  p_arm->target.yaw2_rad = LIMIT(yaw2_rad, p_arm->yaw2_min_rad, p_arm->yaw2_max_rad);
+  p_arm->target.end_pitch_rad = LIMIT(end_pitch_rad, p_arm->end_pitch_min_rad, p_arm->end_pitch_max_rad);
+  p_arm->target.end_yaw_rad = end_yaw_rad;
 
-  p_arm->yaw1_ctrl.target = p_arm->target.yaw1;
-  p_arm->pitch1_ctrl.target = p_arm->target.pitch1;
-  p_arm->pitch2_ctrl.target = p_arm->target.pitch2;
-  p_arm->yaw2_ctrl.target = p_arm->target.yaw2;
-  p_arm->end1_ctrl.target = p_arm->target.end_pitch * K_ARM_END_PITCH_RAD_TO_ECD + \
-                            p_arm->target.end_yaw * K_ARM_END_YAW_RAD_TO_ECD;
-  p_arm->end2_ctrl.target = -p_arm->target.end_pitch * K_ARM_END_PITCH_RAD_TO_ECD + \
-                            p_arm->target.end_yaw * K_ARM_END_YAW_RAD_TO_ECD;
+  p_arm->yaw1_ctrl.target = p_arm->target.yaw1_rad;
+  p_arm->pitch1_ctrl.target = p_arm->target.pitch1_rad;
+  p_arm->pitch2_ctrl.target = p_arm->target.pitch2_deg;
+  p_arm->yaw2_ctrl.target = p_arm->target.yaw2_rad;
+  p_arm->end1_ctrl.target = p_arm->target.end_pitch_rad * K_ARM_END_PITCH_RAD_TO_ECD + \
+                            p_arm->target.end_yaw_rad * K_ARM_END_YAW_RAD_TO_ECD;
+  p_arm->end2_ctrl.target = -p_arm->target.end_pitch_rad * K_ARM_END_PITCH_RAD_TO_ECD + \
+                            p_arm->target.end_yaw_rad * K_ARM_END_YAW_RAD_TO_ECD;
 
-  DM_Motor_MIT_SetPos(&p_arm->yaw1_8009p, p_arm->target.yaw1);
-  DM_Motor_MIT_SetPos(&p_arm->pitch1_8009p, p_arm->target.pitch1);
-  DM_Motor_MIT_SetPos(&p_arm->yaw2_4310, p_arm->target.yaw2);
+  DM_Motor_MIT_SetPos(&p_arm->yaw1_8009p, p_arm->target.yaw1_rad);
+  DM_Motor_MIT_SetPos(&p_arm->pitch1_8009p, p_arm->target.pitch1_rad);
+  DM_Motor_MIT_SetPos(&p_arm->yaw2_4310, p_arm->target.yaw2_rad);
 }
 
 void Arm_Enable(Arm_t *p_arm) {
-  p_arm->state = ARM_ENABLE;
+  p_arm->state = ARM_STATE_ENABLE;
   DM_Motor_Enable(&p_arm->yaw1_8009p);
   DM_Motor_Enable(&p_arm->pitch1_8009p);
   DJI_Motor_Enable(&p_arm->pitch2_3508);
@@ -156,7 +139,7 @@ void Arm_Enable(Arm_t *p_arm) {
 }
 
 void Arm_Disable(Arm_t *p_arm) {
-  p_arm->state = ARM_DISABLE;
+  p_arm->state = ARM_STATE_DISABLE;
   DM_Motor_Disable(&p_arm->yaw1_8009p);
   DM_Motor_Disable(&p_arm->pitch1_8009p);
   DJI_Motor_Disable(&p_arm->pitch2_3508);
@@ -173,7 +156,7 @@ void Arm_Disable(Arm_t *p_arm) {
 }
 
 void Arm_Calc(Arm_t *p_arm) {
-  if (p_arm->state == ARM_DISABLE) {
+  if (p_arm->state == ARM_STATE_DISABLE) {
     DM_Motor_MIT_SetTorq(&p_arm->yaw1_8009p, 0);
     DM_Motor_MIT_SetTorq(&p_arm->pitch1_8009p, 0);
     DJI_Motor_SetCmd(&p_arm->pitch2_3508, 0);
@@ -181,7 +164,7 @@ void Arm_Calc(Arm_t *p_arm) {
     DJI_Motor_SetCmd(&p_arm->end1_2006, 0);
     DJI_Motor_SetCmd(&p_arm->end2_2006, 0);
     return;
-  } else if (p_arm->state == ARM_ENABLE) {
+  } else if (p_arm->state == ARM_STATE_ENABLE) {
     MotorCtrl_Calc(&p_arm->yaw1_ctrl);
     MotorCtrl_Calc(&p_arm->pitch1_ctrl);
     MotorCtrl_Calc(&p_arm->pitch2_ctrl);

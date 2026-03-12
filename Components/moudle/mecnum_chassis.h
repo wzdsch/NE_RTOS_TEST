@@ -42,8 +42,6 @@ typedef struct {
   PID_Init_t pid_motor_rb;
 } Chassis_Init_t;
 
-extern Chassis_t chassis;
-
 /// @brief 底盘初始化
 /// @param p_chassis 底盘指针
 /// @param p_init 初始化指针

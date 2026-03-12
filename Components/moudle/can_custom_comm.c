@@ -7,7 +7,7 @@
  * @Author: Jiang Tianhang 1919524828@qq.com
  * @Date: 2026-01-05 21:29:25
  * @LastEditors: Jiang Tianhang 1919524828@qq.com
- * @LastEditTime: 2026-02-11 13:32:06
+ * @LastEditTime: 2026-03-11 23:11:42
  * @FilePath: \NE_RTOS_TEST\Components\moudle\can_custom_comm.c
  * @Description: 
  */
@@ -61,7 +61,9 @@ void CAN_CustomComm_Tx_Init(CAN_CustomComm_Tx_t* p_tx, CAN_CustomComm_Tx_Init_t*
 }
 
 void CAN_CustomComm_Tx_PackSend(CAN_CustomComm_Tx_t* p_tx) {
-  p_tx->pPackFunc(p_tx->p_buf); // 打包
+  if (p_tx->pPackFunc != NULL) {
+    p_tx->pPackFunc(p_tx->p_buf); // 打包
+  }
   BSP_CAN_SetTxID(&p_tx->tx_instance, p_tx->start_tx_id); // 恢复初始id
   
   uint8_t send_size = 0; // 暂时发送的字节数
@@ -154,6 +156,8 @@ static void _CAN_CustomComm_RxCallback(BSP_CAN_RxInstance* p_rx_instance) {
   
   // 若是最后一个包，解包
   if ((p_rx_instance->rx_id - p_custom_rx->start_rx_id + 1) == p_custom_rx->pack_cnt) {
-    p_custom_rx->pUnpackFunc(p_custom_rx->p_buf);
+    if (p_custom_rx->pUnpackFunc != NULL) {
+      p_custom_rx->pUnpackFunc(p_custom_rx->p_buf);
+    }
   }
 }

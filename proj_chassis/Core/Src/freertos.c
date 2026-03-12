@@ -45,14 +45,23 @@
 
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN Variables */
+extern osThreadId_t canTaskHandle;
+extern osThreadId_t pushRodTaskHandle;
+extern osThreadId_t chassisTaskHandle;
+extern osThreadId_t canCustomCommHandle;
 
+uint32_t can_task_remain_stack = 0;
+uint32_t push_rod_task_remain_stack = 0;
+uint32_t chassis_task_remain_stack = 0;
+uint32_t can_custom_comm_remain_stack = 0;
+uint32_t default_task_remain_stack = 0;
 /* USER CODE END Variables */
 /* Definitions for defaultTask */
 osThreadId_t defaultTaskHandle;
 const osThreadAttr_t defaultTask_attributes = {
   .name = "defaultTask",
-  .stack_size = 128 * 4,
-  .priority = (osPriority_t) osPriorityNormal,
+  .stack_size = 512,
+  .priority = (osPriority_t) osPriorityIdle,
 };
 
 /* Private function prototypes -----------------------------------------------*/
@@ -115,7 +124,11 @@ void StartDefaultTask(void *argument)
 {
   /* USER CODE BEGIN StartDefaultTask */
   for(;;) {
-
+    can_task_remain_stack = uxTaskGetStackHighWaterMark(canTaskHandle);
+    push_rod_task_remain_stack = uxTaskGetStackHighWaterMark(pushRodTaskHandle);
+    chassis_task_remain_stack = uxTaskGetStackHighWaterMark(chassisTaskHandle);
+    can_custom_comm_remain_stack = uxTaskGetStackHighWaterMark(canCustomCommHandle);
+    default_task_remain_stack = uxTaskGetStackHighWaterMark(defaultTaskHandle);
     osDelay(1);
   }
   /* USER CODE END StartDefaultTask */

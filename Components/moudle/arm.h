@@ -7,7 +7,7 @@
  * @Author: Jiang Tianhang 1919524828@qq.com
  * @Date: 2025-12-29 10:35:45
  * @LastEditors: Jiang Tianhang 1919524828@qq.com
- * @LastEditTime: 2026-03-07 16:49:25
+ * @LastEditTime: 2026-03-12 20:47:05
  * @FilePath: \NE_RTOS_TEST\Components\moudle\arm.h
  * @Description: 
  */
@@ -19,9 +19,9 @@
 #include "JY_ME01.h"
 
 typedef enum {
-  ARM_DISABLE, // 失能
-  ARM_ENABLE,  // 使能
-  ARM_CALIB    // 校准中
+  ARM_STATE_DISABLE, // 失能
+  ARM_STATE_ENABLE,  // 使能
+  ARM_STATE_CALIB    // 校准中
 } ArmState_e;
 
 typedef enum
@@ -32,27 +32,45 @@ typedef enum
 
 typedef struct {
   JY_ME01_Init_t JY_ME01;
+
   DM_Motor_Init_t yaw1_8009p_init;
   DM_Motor_Init_t pitch1_8009p_init;
   DJI_Motor_Init_t pitch2_3508_init;
   DM_Motor_Init_t yaw2_4310_init;
   DJI_Motor_Init_t end1_2006_init; // 末端执行器1
   DJI_Motor_Init_t end2_2006_init; // 末端执行器2
+
   PID_Init_t pid_pitch2_ext; // pitch2外环PID参数
   PID_Init_t pid_pitch2_int; // pitch2内环PID参数
   PID_Init_t pid_end1_ext; // end1外环PID参数
   PID_Init_t pid_end1_int; // end1内环PID参数
   PID_Init_t pid_end2_ext; // end2外环PID参数
   PID_Init_t pid_end2_int; // end2内环PID参数
+  
+  // 限幅
+  float yaw1_min_rad;
+  float yaw1_max_rad;
+
+  float pitch1_min_rad;
+  float pitch1_max_rad;
+
+  float pitch2_min_deg;
+  float pitch2_max_deg;
+
+  float yaw2_min_rad;
+  float yaw2_max_rad;
+
+  float end_pitch_min_rad;
+  float end_pitch_max_rad;
 } ArmInit_t;
 
 typedef struct {
-  float yaw1;
-  float pitch1;
-  float pitch2;
-  float yaw2;
-  float end_pitch;
-  float end_yaw;
+  float yaw1_rad;
+  float pitch1_rad;
+  float pitch2_deg;
+  float yaw2_rad;
+  float end_pitch_rad;
+  float end_yaw_rad;
 } ArmTarget_t;
 
 typedef struct {
@@ -81,9 +99,23 @@ typedef struct {
 
   float real_end_pitch_rad;
   float real_end_yaw_rad;
-} Arm_t;
 
-extern Arm_t arm;
+  // 限幅
+  float yaw1_min_rad;
+  float yaw1_max_rad;
+
+  float pitch1_min_rad;
+  float pitch1_max_rad;
+
+  float pitch2_min_deg;
+  float pitch2_max_deg;
+
+  float yaw2_min_rad;
+  float yaw2_max_rad;
+
+  float end_pitch_min_rad;
+  float end_pitch_max_rad;
+} Arm_t;
 
 void Arm_Init(Arm_t *p_arm, ArmInit_t *init);
 
@@ -92,7 +124,7 @@ void Arm_SetLoad(Arm_t *p_arm, ArmLoad_t load);
 /// @brief 从模块内部的target结构体设定电机目标值, 进行限幅等处理
 /// @note 需要将目标值写入target结构体后调用此函数, 会设定目标并自动更新target
 /// @param p_arm 
-void Arm_SetTarget(Arm_t *p_arm);
+void Arm_SetTarget(Arm_t *p_arm, float yaw1_rad, float pitch1_rad, float pitch2_deg, float yaw2_rad, float end_pitch_rad, float end_yaw_rad);
 
 void Arm_Enable(Arm_t *p_arm);
 

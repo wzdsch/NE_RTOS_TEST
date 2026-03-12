@@ -11,8 +11,6 @@
 
 extern robot_state_t robot_state;
 
-Chassis_t chassis;
-
 // sin/cos四分之PI
 #define SIN_PI_OVER_4 0.7071f
 
