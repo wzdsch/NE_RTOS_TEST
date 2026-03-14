@@ -7,7 +7,7 @@
  * @Author: Jiang Tianhang 1919524828@qq.com
  * @Date: 2026-01-07 11:36:00
  * @LastEditors: Jiang Tianhang 1919524828@qq.com
- * @LastEditTime: 2026-03-07 14:40:52
+ * @LastEditTime: 2026-03-13 22:11:47
  * @FilePath: \NE_RTOS_TEST\Components\remote_ctrl\remote_receive.c
  * @Description: This file is by Guo Hongting
  */
@@ -24,12 +24,12 @@ FSI6Data_t fsi6_data = {
   .left_y = FSI6_CHANNEL_MID,
   .right_x = FSI6_CHANNEL_MID,
   .right_y = FSI6_CHANNEL_MID,
-  .left_ch1 = FSI6_CHANNEL_MIN,
-  .left_ch2 = FSI6_CHANNEL_MIN,
-  .right_ch1 = FSI6_CHANNEL_MIN,
-  .right_ch2 = FSI6_CHANNEL_MIN,
-  .left_knob = FSI6_CHANNEL_MIN,
-  .right_knob = FSI6_CHANNEL_MIN,
+  .swa = FSI6_CHANNEL_MIN,
+  .swb = FSI6_CHANNEL_MIN,
+  .swc = FSI6_CHANNEL_MIN,
+  .swd = FSI6_CHANNEL_MIN,
+  .vra = FSI6_CHANNEL_MIN,
+  .vrb = FSI6_CHANNEL_MIN,
 };
 __attribute__((section(".sram2"))) uint8_t W_BusRxBuffer[2][RC_FRAME_NUM]; // DMA 双缓冲区
 __attribute__((section(".sram2"))) uint8_t *fsi6_completed_buf;            // 指向本次接收完成的数据缓冲区
@@ -41,12 +41,12 @@ void GetFSI6Data(FSI6Data_t *fsi6Data, uint8_t *rxBuffer)
   fsi6Data->right_y = ((uint16_t)rxBuffer[2] >> 3 | ((uint16_t)rxBuffer[3] << 5)) & 0x07FF;
   fsi6Data->left_y = ((uint16_t)rxBuffer[3] >> 6 | ((uint16_t)rxBuffer[4] << 2) | (uint16_t)rxBuffer[5] << 10) & 0x07FF;
   fsi6Data->left_x = ((uint16_t)rxBuffer[5] >> 1 | ((uint16_t)rxBuffer[6] << 7)) & 0x07FF;
-  fsi6Data->left_ch1 = ((uint16_t)rxBuffer[6] >> 4 | ((uint16_t)rxBuffer[7] << 4)) & 0x07FF;
-  fsi6Data->left_ch2 = ((uint16_t)rxBuffer[7] >> 7 | ((uint16_t)rxBuffer[8] << 1) | (uint16_t)rxBuffer[9] << 9) & 0x07FF;
-  fsi6Data->right_ch2 = ((uint16_t)rxBuffer[9] >> 2 | ((uint16_t)rxBuffer[10] << 6)) & 0x07FF;
-  fsi6Data->right_ch1 = ((uint16_t)rxBuffer[10] >> 5 | ((uint16_t)rxBuffer[11] << 3)) & 0x07FF;
-  fsi6Data->left_knob = ((uint16_t)rxBuffer[12] >> 0 | ((uint16_t)rxBuffer[13] << 8)) & 0x07FF;
-  fsi6Data->right_knob = ((uint16_t)rxBuffer[13] >> 3 | ((uint16_t)rxBuffer[14] << 5)) & 0x07FF;
+  fsi6Data->swa = ((uint16_t)rxBuffer[6] >> 4 | ((uint16_t)rxBuffer[7] << 4)) & 0x07FF;
+  fsi6Data->swb = ((uint16_t)rxBuffer[7] >> 7 | ((uint16_t)rxBuffer[8] << 1) | (uint16_t)rxBuffer[9] << 9) & 0x07FF;
+  fsi6Data->swc = ((uint16_t)rxBuffer[9] >> 2 | ((uint16_t)rxBuffer[10] << 6)) & 0x07FF;
+  fsi6Data->swd = ((uint16_t)rxBuffer[10] >> 5 | ((uint16_t)rxBuffer[11] << 3)) & 0x07FF;
+  fsi6Data->vra = ((uint16_t)rxBuffer[12] >> 0 | ((uint16_t)rxBuffer[13] << 8)) & 0x07FF;
+  fsi6Data->vrb = ((uint16_t)rxBuffer[13] >> 3 | ((uint16_t)rxBuffer[14] << 5)) & 0x07FF;
   fsi6Data->fsi6_flag = rxBuffer[23];
   fsi6Data->fsi6_end = rxBuffer[24];
 }

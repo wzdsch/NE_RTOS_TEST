@@ -2,7 +2,7 @@
  * @Author: Jiang Tianhang 1919524828@qq.com
  * @Date: 2026-03-11 21:53:53
  * @LastEditors: Jiang Tianhang 1919524828@qq.com
- * @LastEditTime: 2026-03-12 20:51:36
+ * @LastEditTime: 2026-03-13 17:31:02
  * @FilePath: \proj_right_arm\app\usr_tasks.c
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
@@ -27,6 +27,12 @@
 extern osThreadId_t armTaskHandle;
 extern osThreadId_t canTaskHandle;
 extern osMessageQueueId_t canTxMsgQueueHandle;
+
+extern CAN_Custom_ArmCtrlData_t arm_ctrl_data;
+extern CAN_CustomComm_Rx_t comm_arm_ctrl;
+
+extern CAN_CustomComm_Tx_t comm_arm_fdb_target;
+extern ArmTarget_t arm_fdb_target;
 
 extern Arm_t arm;
 
@@ -171,6 +177,36 @@ void ArmTask(void *argument)
     DM_Motor_MIT_Send(&arm.yaw2_4310);
     DJI_Motor_GroupTransmit(&hcan2, DJI_MOTOR_TX_200);
     osDelayUntil(start_tick + 2);
+  }
+}
+
+void CanCustomCommTask(void *argument) {
+  {
+    CAN_CustomComm_Rx_Init_t comm_arm_ctrl_rx_init = {
+      .hcan = &hcan1,
+      .start_rx_id = CAN_CUSTOM_COMM_START_ID_ARM_CTRL,
+      .IDE = CAN_ID_STD,
+      .p_buf = &arm_ctrl_data,
+      .size = sizeof(arm_ctrl_data),
+      .pUnpackFunc = NULL
+    };
+    CAN_CustomComm_Rx_Init(&comm_arm_ctrl, &comm_arm_ctrl_rx_init);
+  }
+  {
+    CAN_CustomComm_Tx_Init_t comm_arm_fdb_init = {
+      .hcan = &hcan1,
+      .start_tx_id = CAN_CUSTOM_COMM_START_ID_ARM_FDB_TARGET,
+      .IDE = CAN_ID_STD,
+      .p_buf = &arm_fdb_target,
+      .size = sizeof(arm_fdb_target),
+      .pPackFunc = NULL
+    };
+    CAN_CustomComm_Tx_Init(&comm_arm_fdb_target, &comm_arm_fdb_init);
+  }
+  while(1)
+  {
+    
+    osDelay(1);
   }
 }
 

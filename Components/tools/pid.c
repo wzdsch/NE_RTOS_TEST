@@ -30,7 +30,7 @@ void PID_Init(Pid_t *p_pid_t, PID_Init_t *p_init) {
   }
   p_pid_t->mode = p_init->mode;
   p_pid_t->kp = p_init->kp;
-  p_pid_t->ki = p_init->kd;
+  p_pid_t->ki = p_init->ki;
   p_pid_t->kd = p_init->kd;
   p_pid_t->out_limit = p_init->out_limit;
   p_pid_t->i_out_limit = p_init->i_out_limit;

@@ -13,9 +13,6 @@
 #include <string.h>
 #include "tools.h"
 
-#define PUSH_ROD_MAX_ECD 100000
-#define PUSH_ROD_MIN_ECD (-100000)
-
 /// @brief 同步双电机累计编码误差
 /// @param p_push_rod 推杆结构体指针
 static void _PushRod_SyncMotorEcdError(PushRod_t *p_push_rod)
@@ -121,7 +118,10 @@ void PushRod_SetTarget(PushRod_t *p_push_rod, float target_ecd)
     target_ecd = PUSH_ROD_MIN_ECD;
   }
 
-  p_push_rod->target_total_ecd = RampPlanner(p_push_rod->target_total_ecd, target_ecd, 100, 100);
+  float real_total_ecd = (p_push_rod->motor1.processed_measure.pos_total_ecd +\
+                         p_push_rod->motor2.processed_measure.pos_total_ecd) / 2;
+
+  p_push_rod->target_total_ecd = RampPlanner(real_total_ecd, target_ecd, 2000, 2000);
   // 设置电机目标值
   MotorCtrl_SetTarget(&p_push_rod->motor1_ctrl, p_push_rod->target_total_ecd);
   MotorCtrl_SetTarget(&p_push_rod->motor2_ctrl, p_push_rod->target_total_ecd);

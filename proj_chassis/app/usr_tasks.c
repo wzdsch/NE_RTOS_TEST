@@ -12,26 +12,13 @@
 #include "push_rod.h"
 #include "vofa.h"
 #include "mecnum_chassis.h"
-
-extern osThreadId_t canTaskHandle;
-extern osMessageQueueId_t canTxMsgQueueHandle;
-extern osThreadId_t pushRodTaskHandle;
-extern osThreadId_t chassisTaskHandle;
-
-extern Chassis_t chassis;
-extern PushRod_t push_rod_f;
-extern PushRod_t push_rod_b;
-
-extern CAN_Custom_ChassisCtrlData_t chassis_ctrl_data;   // 底盘控制数据
-extern CAN_CustomComm_Rx_t can_custom_chassis_ctrl;      // 自定义can通信底盘控制
-
-extern CAN_Custom_PushRodsCtrlData_t push_rods_ctrl_data; // 推杆控制数据
-extern CAN_CustomComm_Rx_t can_custom_push_rods_ctrl;    // 自定义can通信推杆控制
+#include "usr_freertos.h"
+#include "usr_main.h"
 
 void PushRodTask(void *argument)
 {
+  // --------------- 前推杆初始化 ---------------
   {
-    // --------------- 前推杆初始化 ---------------
     PushRod_Init_t push_rod_f_init = {
       .motor1_init = {
         .hcan = &hcan2,
@@ -56,30 +43,30 @@ void PushRodTask(void *argument)
       // 电机1位置环
       .motor1_pos_params = {
         .mode = PID_POSITION,
-        .kp = 0.1f, .ki = 0.00f, .kd = 0.f, // 典型位置环参数，需微调
+        .kp = 1.f, .ki = 0.00f, .kd = 0.f, // 典型位置环参数，需微调
         .out_limit = 8000.0f,    // 速度环的目标限幅
         .i_out_limit = 2000.0f
       },
       // 电机1速度环
       .motor1_spd_params = {
         .mode = PID_POSITION,
-        .kp = 1.147f, .ki = 0.0f, .kd = 0.0f, // 典型 M3508 速度环参数
+        .kp = 3.f, .ki = 0.00f, .kd = 0.0f, // 典型 M3508 速度环参数
         .out_limit = 16384.f,   // 电流最大值 (M3508: 16384)
-        .i_out_limit = 1000.0f
+        .i_out_limit = 15000.0f
       },
       // 电机2位置环
       .motor2_pos_params = {
         .mode = PID_POSITION,
-        .kp = 0.1f, .ki = 0.0f, .kd = 0.0f,
+        .kp = 1.f, .ki = 0.0f, .kd = 0.0f,
         .out_limit = 8000.0f,
         .i_out_limit = 2000.0f
       },
       // 电机2速度环
       .motor2_spd_params = {
         .mode = PID_POSITION,
-        .kp = 1.147f, .ki = 0.f, .kd = 0.0f,
+        .kp = 3.f, .ki = 0.00f, .kd = 0.0f,
         .out_limit = 16384.0f,
-        .i_out_limit = 1000.0f
+        .i_out_limit = 15000.0f
       },
       .err_pid_params = {
         .mode = PID_POSITION,
@@ -96,8 +83,10 @@ void PushRodTask(void *argument)
     };
     PushRod_Init(&push_rod_f, &push_rod_f_init);
     PushRod_Enable(&push_rod_f);
+  }
 
-    // --------------- 后推杆初始化 ---------------
+  // --------------- 后推杆初始化 ---------------
+  {
     PushRod_Init_t push_rod_b_init = {
       .motor1_init = {
         .hcan = &hcan2,
@@ -122,30 +111,30 @@ void PushRodTask(void *argument)
       // 电机1位置环
       .motor1_pos_params = {
         .mode = PID_POSITION,
-        .kp = 0.1f, .ki = 0.00f, .kd = 0.f, // 典型位置环参数，需微调
+        .kp = 1.f, .ki = 0.00f, .kd = 0.f, // 典型位置环参数，需微调
         .out_limit = 8000.0f,    // 速度环的目标限幅
         .i_out_limit = 2000.0f
       },
       // 电机1速度环
       .motor1_spd_params = {
         .mode = PID_POSITION,
-        .kp = 1.147f, .ki = 0.0f, .kd = 0.0f, // 典型 M3508 速度环参数
+        .kp = 3.f, .ki = 0.00f, .kd = 0.0f, // 典型 M3508 速度环参数
         .out_limit = 16384.f,   // 电流最大值 (M3508: 16384)
-        .i_out_limit = 1000.0f
+        .i_out_limit = 15000.0f
       },
       // 电机2位置环
       .motor2_pos_params = {
         .mode = PID_POSITION,
-        .kp = 0.1f, .ki = 0.0f, .kd = 0.0f,
+        .kp = 1.f, .ki = 0.0f, .kd = 0.0f,
         .out_limit = 8000.0f,
         .i_out_limit = 2000.0f
       },
       // 电机2速度环
       .motor2_spd_params = {
         .mode = PID_POSITION,
-        .kp = 1.147f, .ki = 0.f, .kd = 0.0f,
+        .kp = 3.f, .ki = 0.00f, .kd = 0.0f,
         .out_limit = 16384.0f,
-        .i_out_limit = 1000.0f
+        .i_out_limit = 15000.0f
       },
       .err_pid_params = {
         .mode = PID_POSITION,
@@ -165,10 +154,11 @@ void PushRodTask(void *argument)
   // int64_t tar = 0;
   while (1)
   {
+    uint32_t start_tick = osKernelGetTickCount();
     PushRod_Logic();
 
     DJI_Motor_GroupTransmit(&hcan2, DJI_MOTOR_TX_1FF);
-    osDelay(2);
+    osDelayUntil(start_tick + 2);
   }
 }
 
@@ -250,16 +240,47 @@ void ChassisTask(void* argument) {
 }
 
 void CanCustomCommTask(void *argument) {
+  {
+    CAN_CustomComm_Rx_Init_t comm_chassis_ctrl_init = {
+      .hcan = &hcan1,
+      .IDE = CAN_ID_STD,
+      .start_rx_id = CAN_CUSTOM_COMM_START_ID_CHASSIS_CTRL,
+      .p_buf = &chassis_ctrl_data,
+      .size = sizeof(chassis_ctrl_data),
+      .pUnpackFunc = NULL
+    };
+    CAN_CustomComm_Rx_Init(&comm_chassis_ctrl, &comm_chassis_ctrl_init);
+  }
+
+  {
+    CAN_CustomComm_Rx_Init_t comm_push_rods_ctrl_init = {
+      .hcan = &hcan1,
+      .IDE = CAN_ID_STD,
+      .start_rx_id = CAN_CUSTOM_COMM_START_ID_PUSH_RODS_CTRL,
+      .p_buf = &push_rods_ctrl_data,
+      .size = sizeof(push_rods_ctrl_data),
+      .pUnpackFunc = NULL
+    };
+    CAN_CustomComm_Rx_Init(&comm_push_rods_ctrl, &comm_push_rods_ctrl_init);
+  }
   while (1) {
     uint32_t strt_tick = osKernelGetTickCount();
     osDelayUntil(strt_tick + 10);
   }
 }
 
-void CanTask(void *argument) {
+void BspCan1Task(void *argument) {
   BSP_CAN_TxInstance can_tx_msg = {0};
   while (1) {
-    osMessageQueueGet(canTxMsgQueueHandle, &can_tx_msg, 0, portMAX_DELAY);
-    while(BSP_CAN_Transmit(&can_tx_msg) != HAL_OK);
+    osMessageQueueGet(bspCan1TxMsgQueueHandle, &can_tx_msg, 0, portMAX_DELAY);
+    while(HAL_CAN_AddTxMessage(can_tx_msg.p_can_handle, &can_tx_msg.tx_header, can_tx_msg.tx_buf, &can_tx_msg.tx_mailbox) != HAL_OK);
+  }
+}
+
+void BspCan2Task(void *argument) {
+  BSP_CAN_TxInstance can_tx_msg = {0};
+  while (1) {
+    osMessageQueueGet(bspCan2TxMsgQueueHandle, &can_tx_msg, 0, portMAX_DELAY);
+    while(HAL_CAN_AddTxMessage(can_tx_msg.p_can_handle, &can_tx_msg.tx_header, can_tx_msg.tx_buf, &can_tx_msg.tx_mailbox) != HAL_OK);
   }
 }

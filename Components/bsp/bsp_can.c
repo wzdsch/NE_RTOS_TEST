@@ -7,7 +7,7 @@
  * @Author: Jiang Tianhang 1919524828@qq.com
  * @Date: 2025-11-16 18:39:25
  * @LastEditors: Jiang Tianhang 1919524828@qq.com
- * @LastEditTime: 2026-03-04 17:20:54
+ * @LastEditTime: 2026-03-13 22:13:25
  * @FilePath: \MDK-ARMd:\RoboMaster\code\NE_RTOS_TEST\Components\bsp\bsp_can.c
  * @Description: 
  */
@@ -15,6 +15,8 @@
 #include "main.h"
 #include <string.h>
 #include "stdlib.h"
+#include "cmsis_os.h"
+#include "usr_freertos.h"
 
 #include "uthash.h" // 这是一个快速查找键值对的库, 后续考虑要不要用来代替接收时遍历，我在使用HASH_FIND_INT时出现了bug
 
@@ -159,15 +161,27 @@ void BSP_CAN_Tx_Init(BSP_CAN_TxInstance *p_tx_instance, CAN_HandleTypeDef *p_hca
 
 HAL_StatusTypeDef BSP_CAN_Transmit(BSP_CAN_TxInstance *const tx_instance)
 {
-  static uint32_t busy_count;
-  HAL_StatusTypeDef status = HAL_OK;
-  if ((status = HAL_CAN_AddTxMessage(tx_instance->p_can_handle, &tx_instance->tx_header, tx_instance->tx_buf, &tx_instance->tx_mailbox)) != HAL_OK)
-  {
-    // 发送失败就直接返回，不采用阻塞发送
-    busy_count++;
-    return status;
+  // static uint32_t busy_count;
+  // HAL_StatusTypeDef status = HAL_OK;
+  // if ((status = HAL_CAN_AddTxMessage(tx_instance->p_can_handle, &tx_instance->tx_header, tx_instance->tx_buf, &tx_instance->tx_mailbox)) != HAL_OK)
+  // {
+  //   // 发送失败就直接返回，不采用阻塞发送
+  //   busy_count++;
+  //   return status;
+  // }
+  // return status; // 发送成功
+  HAL_StatusTypeDef state = HAL_ERROR;
+  if (tx_instance->p_can_handle == &hcan1) {
+    if (osMessageQueuePut(bspCan1TxMsgQueueHandle, tx_instance, 0, 0) == osOK) {
+      state = HAL_OK;
+    }
   }
-  return status; // 发送成功
+  else if (tx_instance->p_can_handle == &hcan2) {
+    if (osMessageQueuePut(bspCan2TxMsgQueueHandle, tx_instance, 0, 0) == osOK) {
+      state = HAL_OK;
+    }
+  }
+  return state;
 }
 
 inline void BSP_CAN_SetTxDLC(BSP_CAN_TxInstance *p_tx_instance, uint8_t length)

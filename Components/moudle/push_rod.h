@@ -15,8 +15,8 @@
 #include "DJI_Motor.h"
 #include "MotorCtrl.h"
 
-#define PUSH_ROD_MAX_POS 10000
-#define PUSH_ROD_MIN_POS 0
+#define PUSH_ROD_MAX_ECD 212992
+#define PUSH_ROD_MIN_ECD 0
 
 /// @brief 推杆机构状态枚举
 typedef enum

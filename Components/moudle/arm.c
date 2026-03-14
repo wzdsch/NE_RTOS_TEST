@@ -7,7 +7,7 @@
  * @Author: Jiang Tianhang 1919524828@qq.com
  * @Date: 2025-12-29 10:35:45
  * @LastEditors: Jiang Tianhang 1919524828@qq.com
- * @LastEditTime: 2026-03-12 20:46:32
+ * @LastEditTime: 2026-03-14 21:04:47
  * @FilePath: \NE_RTOS_TEST\Components\moudle\arm.c
  * @Description: 
  */
@@ -55,6 +55,17 @@ void Arm_Init(Arm_t *p_arm, ArmInit_t* p_init) {
   p_arm->real_end_pitch_rad = 0.f;
   p_arm->real_end_yaw_rad = 0.f;
 
+  p_arm->yaw1_max_rad = p_init->yaw1_max_rad;
+  p_arm->yaw1_min_rad = p_init->yaw1_min_rad;
+  p_arm->pitch1_max_rad = p_init->pitch1_max_rad;
+  p_arm->pitch1_min_rad = p_init->pitch1_min_rad;
+  p_arm->pitch2_max_deg = p_init->pitch2_max_deg;
+  p_arm->pitch2_min_deg = p_init->pitch2_min_deg;
+  p_arm->yaw2_max_rad = p_init->yaw2_max_rad;
+  p_arm->yaw2_min_rad = p_init->yaw2_min_rad;
+  p_arm->end_pitch_max_rad = p_init->end_pitch_max_rad;
+  p_arm->end_pitch_min_rad = p_init->end_pitch_min_rad;
+
   DM_Motor_Init(&p_arm->yaw1_8009p, &p_init->yaw1_8009p_init);
   DM_Motor_MIT_SetPD(&p_arm->yaw1_8009p, 20.f, 0.5f);
   MotorCtrl_Init(&p_arm->yaw1_ctrl, MOTOR_CTRL_PID_NONE, MOTOR_CTRL_OUT_FEEDFWD, 0.0f, &p_arm->yaw1_8009p);
@@ -100,12 +111,14 @@ void Arm_SetTarget(Arm_t *p_arm, float yaw1_rad, float pitch1_rad, float pitch2_
     p_arm->target.end_pitch_rad = p_arm->real_end_pitch_rad;
     p_arm->target.end_yaw_rad = p_arm->real_end_yaw_rad;
   }
-  p_arm->target.yaw1_rad = LIMIT(yaw1_rad, p_arm->yaw1_min_rad, p_arm->yaw1_max_rad);
-  p_arm->target.pitch1_rad = LIMIT(pitch1_rad, p_arm->pitch1_min_rad, p_arm->pitch1_max_rad);
-  p_arm->target.pitch2_deg = LIMIT(pitch2_deg, p_arm->pitch2_min_deg, p_arm->pitch2_max_deg);
-  p_arm->target.yaw2_rad = LIMIT(yaw2_rad, p_arm->yaw2_min_rad, p_arm->yaw2_max_rad);
-  p_arm->target.end_pitch_rad = LIMIT(end_pitch_rad, p_arm->end_pitch_min_rad, p_arm->end_pitch_max_rad);
-  p_arm->target.end_yaw_rad = end_yaw_rad;
+  else {
+    p_arm->target.yaw1_rad = LIMIT(yaw1_rad, p_arm->yaw1_min_rad, p_arm->yaw1_max_rad);
+    p_arm->target.pitch1_rad = LIMIT(pitch1_rad, p_arm->pitch1_min_rad, p_arm->pitch1_max_rad);
+    p_arm->target.pitch2_deg = LIMIT(pitch2_deg, p_arm->pitch2_min_deg, p_arm->pitch2_max_deg);
+    p_arm->target.yaw2_rad = LIMIT(yaw2_rad, p_arm->yaw2_min_rad, p_arm->yaw2_max_rad);
+    p_arm->target.end_pitch_rad = LIMIT(end_pitch_rad, p_arm->end_pitch_min_rad, p_arm->end_pitch_max_rad);
+    p_arm->target.end_yaw_rad = end_yaw_rad;
+  }
 
   p_arm->yaw1_ctrl.target = p_arm->target.yaw1_rad;
   p_arm->pitch1_ctrl.target = p_arm->target.pitch1_rad;

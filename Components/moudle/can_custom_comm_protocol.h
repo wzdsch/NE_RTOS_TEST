@@ -3,7 +3,7 @@
  * @Author: Jiang Tianhang 1919524828@qq.com
  * @Date: 2026-02-17 19:36:22
  * @LastEditors: Jiang Tianhang 1919524828@qq.com
- * @LastEditTime: 2026-03-12 20:31:13
+ * @LastEditTime: 2026-03-13 16:54:53
  * @FilePath: \proj_chassisd:\RoboMaster\code\Enginner\Components\moudle\can_custom_comm_protocol.h
  * @Description: CAN自定义通信模块，通信结构体及打包/解包函数
  */
@@ -25,6 +25,18 @@ typedef struct {
   float end_pitch_tar_rad;
   float end_yaw_tar_rad;
 } CAN_Custom_ArmCtrlData_t;
+
+/// @brief ArmSetTarget后, arm模块会自动处理并设置target
+/// 这个结构体就是另一个机械臂反馈的处理后的target
+/// 也相当于ArmTarget_t
+typedef struct {
+  float yaw_rad;
+  float pitch1_rad;
+  float pitch2_deg;
+  float yaw2_rad;
+  float end_pitch_rad;
+  float end_yaw_rad;
+} CAN_Custom_ArmFdbTarget_t;
 
 typedef struct {
   Chassis_State_e state;

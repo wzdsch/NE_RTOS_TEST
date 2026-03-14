@@ -7,7 +7,7 @@
  * @Author: Jiang Tianhang 1919524828@qq.com
  * @Date: 2025-10-29 12:12:28
  * @LastEditors: Jiang Tianhang 1919524828@qq.com
- * @LastEditTime: 2026-02-05 19:38:45
+ * @LastEditTime: 2026-03-13 21:10:38
  * @FilePath: \MDK-ARMd:\RoboMaster\code\NE_RTOS_TEST\Components\motor\DM_Motor.c
  * @Description: 
  */
@@ -328,8 +328,7 @@ void DM_Motor_MIT_Send(DM_Motor_t *const p_motor)
 
   BSP_CAN_SetTxBuf(&p_motor->mit_tx_instance, p_motor->mit_mode_data.txd);
 
-  osMessageQueuePut(canTxMsgQueueHandle, &p_motor->mit_tx_instance, 0, 0);
-  // BSP_CAN_Transmit(&p_motor->mit_tx_instance);
+  BSP_CAN_Transmit(&p_motor->mit_tx_instance);
 }
 #endif
 
@@ -391,10 +390,9 @@ void DM_Motor_POS_SPD_Send(DM_Motor_t *const p_motor)
   memcpy(p_motor->pos_spd_mode_data.txd + 4, &temp_set_pos_rad, 4);
   memcpy(p_motor->pos_spd_mode_data.txd, &temp_set_spd_radps, 4);
 
-  BSP_CAN_SetTxBuf(&p_motor->pos_spd_tx_instance, p_motor->pos_spd_mode_data.txd);\
+  BSP_CAN_SetTxBuf(&p_motor->pos_spd_tx_instance, p_motor->pos_spd_mode_data.txd);
 
-  osMessageQueuePut(canTxMsgQueueHandle, &p_motor->pos_spd_tx_instance, 0, 0);
-  // BSP_CAN_Transmit(&p_motor->pos_spd_tx_instance);
+  BSP_CAN_Transmit(&p_motor->pos_spd_tx_instance);
 }
 #endif
 
@@ -429,7 +427,6 @@ void DM_Motor_SPD_Send(DM_Motor_t *const p_motor)
 
   BSP_CAN_SetTxBuf(&p_motor->spd_tx_instance, p_motor->spd_mode_data.txd);
 
-  osMessageQueuePut(canTxMsgQueueHandle, &p_motor->spd_tx_instance, 0, 0);
-  // BSP_CAN_Transmit(&p_motor->spd_tx_instance);
+  BSP_CAN_Transmit(&p_motor->spd_tx_instance);
 }
 #endif

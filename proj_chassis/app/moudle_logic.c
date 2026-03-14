@@ -2,7 +2,7 @@
  * @Author: Jiang Tianhang 1919524828@qq.com
  * @Date: 2026-02-22 19:49:50
  * @LastEditors: Jiang Tianhang 1919524828@qq.com
- * @LastEditTime: 2026-03-12 01:58:49
+ * @LastEditTime: 2026-03-14 00:28:20
  * @FilePath: \proj_chassis\app\robot_logic.c
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
@@ -32,10 +32,10 @@ void PushRod_Logic() {
   if (push_rods_ctrl_data.state_f == PUSH_ROD_STATE_ENABLE) {
     PushRod_Enable(&push_rod_f);
     if (push_rods_ctrl_data.pos_f == 1) {
-      PushRod_SetTarget(&push_rod_f, PUSH_ROD_MAX_POS);
+      PushRod_SetTarget(&push_rod_f, PUSH_ROD_MAX_ECD);
     }
     else {
-      PushRod_SetTarget(&push_rod_f, PUSH_ROD_MIN_POS);
+      PushRod_SetTarget(&push_rod_f, PUSH_ROD_MIN_ECD);
     }
     PushRod_Calc(&push_rod_f);
   }
@@ -49,10 +49,10 @@ void PushRod_Logic() {
   if (push_rods_ctrl_data.state_b == PUSH_ROD_STATE_ENABLE) {
     PushRod_Enable(&push_rod_b);
     if (push_rods_ctrl_data.pos_b == 1) {
-      PushRod_SetTarget(&push_rod_b, PUSH_ROD_MAX_POS);
+      PushRod_SetTarget(&push_rod_b, PUSH_ROD_MAX_ECD);
     }
     else {
-      PushRod_SetTarget(&push_rod_b, PUSH_ROD_MIN_POS);
+      PushRod_SetTarget(&push_rod_b, PUSH_ROD_MIN_ECD);
     }
     PushRod_Calc(&push_rod_b);
   }

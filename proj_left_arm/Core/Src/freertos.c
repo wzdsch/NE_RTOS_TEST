@@ -45,7 +45,18 @@
 
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN Variables */
+extern osThreadId_t armTaskHandle;
+extern osThreadId_t bspCan1TaskHandle;
+extern osThreadId_t bspCan2TaskHandle;
+extern osThreadId_t canCustomCommTaskHandle;
+extern osThreadId_t robotCtrlTaskHandle;
 
+uint32_t arm_task_remain_stack = 0;
+uint32_t bsp_can1_task_remain_stack = 0;
+uint32_t bsp_can2_task_remain_stack = 0;
+uint32_t can_custom_comm_task_remain_stack = 0;
+uint32_t robot_ctrl_task_remain_stack = 0;
+uint32_t default_task_remain_stack = 0;
 /* USER CODE END Variables */
 /* Definitions for defaultTask */
 osThreadId_t defaultTaskHandle;
@@ -115,8 +126,13 @@ void StartDefaultTask(void *argument)
 {
   /* USER CODE BEGIN StartDefaultTask */
   for(;;) {
-
-    osDelay(1);
+    arm_task_remain_stack = uxTaskGetStackHighWaterMark(armTaskHandle);
+    bsp_can1_task_remain_stack = uxTaskGetStackHighWaterMark(bspCan1TaskHandle);
+    bsp_can2_task_remain_stack = uxTaskGetStackHighWaterMark(bspCan2TaskHandle);
+    can_custom_comm_task_remain_stack = uxTaskGetStackHighWaterMark(canCustomCommTaskHandle);
+    robot_ctrl_task_remain_stack = uxTaskGetStackHighWaterMark(robotCtrlTaskHandle);
+    default_task_remain_stack = uxTaskGetStackHighWaterMark(defaultTaskHandle);
+    osDelay(10);
   }
   /* USER CODE END StartDefaultTask */
 }

@@ -7,7 +7,7 @@
  * @Author: Jiang Tianhang 1919524828@qq.com
  * @Date: 2026-01-05 21:29:25
  * @LastEditors: Jiang Tianhang 1919524828@qq.com
- * @LastEditTime: 2026-03-11 23:11:42
+ * @LastEditTime: 2026-03-13 21:28:46
  * @FilePath: \NE_RTOS_TEST\Components\moudle\can_custom_comm.c
  * @Description: 
  */
@@ -74,8 +74,7 @@ void CAN_CustomComm_Tx_PackSend(CAN_CustomComm_Tx_t* p_tx) {
     BSP_CAN_SetTxDLC(&p_tx->tx_instance, pack_size);
     BSP_CAN_SetTxBuf(&p_tx->tx_instance, (uint8_t*)p_tx->p_buf + send_size);
 
-    osMessageQueuePut(canTxMsgQueueHandle, &p_tx->tx_instance, 0, 0);
-    // BSP_CAN_Transmit(&p_tx->tx_instance);
+    BSP_CAN_Transmit(&p_tx->tx_instance);
 
     BSP_CAN_SetTxID(&p_tx->tx_instance, p_tx->tx_instance.tx_id + 1); // 每发一个包id自增1
     send_size += pack_size;

@@ -14,6 +14,7 @@
 #ifndef CAN_CUSTOM_COMM_H
 #define CAN_CUSTOM_COMM_H
 
+#include "can_custom_comm_api.h"
 #include "can_custom_comm_protocol.h"
 #include "bsp_can.h"
 

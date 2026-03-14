@@ -7,7 +7,7 @@
  * @Author: Jiang Tianhang 1919524828@qq.com
  * @Date: 2026-01-07 11:36:00
  * @LastEditors: Jiang Tianhang 1919524828@qq.com
- * @LastEditTime: 2026-02-11 13:17:17
+ * @LastEditTime: 2026-03-13 16:22:23
  * @FilePath: \NE_RTOS_TEST\Components\remote_ctrl\remote_receive.h
  * @Description: This file is by Guo Hongting
  */
@@ -34,13 +34,13 @@ typedef struct {
   int16_t right_x;
   int16_t right_y;
 
-  int16_t left_ch1;    // 左1
-  int16_t left_ch2;    // 左2 
-  int16_t right_ch2;   // 右2
-  int16_t right_ch1;   // 右1
+  int16_t swa;    // 拨杆A
+  int16_t swb;    // 拨杆B
+  int16_t swc;   // 拨杆C
+  int16_t swd;   // 拨杆D
 
-  int16_t left_knob;   // 左旋钮
-  int16_t right_knob;  // 右旋钮
+  int16_t vra;   // 旋钮A
+  int16_t vrb;   // 旋钮B
 
   uint8_t fsi6_flag; // 0x00
   uint8_t fsi6_end;  // 0x00

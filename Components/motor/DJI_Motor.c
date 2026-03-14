@@ -7,7 +7,7 @@
  * @Author: Jiang Tianhang 1919524828@qq.com
  * @Date: 2025-10-29 12:11:38
  * @LastEditors: Jiang Tianhang 1919524828@qq.com
- * @LastEditTime: 2026-03-12 16:39:05
+ * @LastEditTime: 2026-03-13 21:10:25
  * @FilePath: \NE_RTOS_TEST\Components\motor\DJI_Motor.c
  * @Description: 
  */
@@ -301,8 +301,7 @@ void _DJI_Motor_GroupUpdateSend(_DJI_Motor_TxGroup_t *p_group)
     }
   }
 
-  osMessageQueuePut(canTxMsgQueueHandle, &p_group->p_tx_instance, 0, 0);
-  // BSP_CAN_Transmit(&p_group->p_tx_instance);
+  BSP_CAN_Transmit(&p_group->p_tx_instance);
 }
 
 void DJI_Motor_GroupTransmit(CAN_HandleTypeDef *p_hcan, DJI_Motor_TxID_e tx_id)
