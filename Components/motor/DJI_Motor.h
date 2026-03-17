@@ -7,7 +7,7 @@
  * @Author: Jiang Tianhang 1919524828@qq.com
  * @Date: 2025-10-29 12:12:02
  * @LastEditors: Jiang Tianhang 1919524828@qq.com
- * @LastEditTime: 2026-01-28 22:55:23
+ * @LastEditTime: 2026-03-18 01:03:02
  * @FilePath: \NE_RTOS_TEST\Components\motor\DJI_Motor.h
  * @Description: 
  */
@@ -15,6 +15,16 @@
 #define DJI_MOTOR_H
 
 #include "bsp_can.h"
+
+#define DJI_MMOTOR_MAX_I_CMD 16384 // 大疆电机电流编码控制最大值
+#define DJI_MMOTOR_MAX_U_CMD 25000 // 大疆电机电压编码控制最大值 (6020电压控制模式)
+
+#define DJI_MOTOR_ECD_CMD_ROUND 8192      // 大疆电机一圈编码值
+#define DJI_MOTOR_ECD_CMD_HALF_ROUND 4096 // 大疆电机半圈编码值
+
+#define K_M3508_CRT_CMD_TO_CRT_A 0.001220703125f                        // (20 / 16384)
+#define K_M3508_CRT_CMD_TO_TOR_NM 0.0003662109375f // (20 / 16384) * 0.3 * 187 / 3591
+#define K_M3508_CRT_NM_TO_CRT_CMD 2730.6667f     // 1 / K_M3508_CRT_CMD_TO_TOR_NM
 
 /// @brief 大疆电机状态枚举
 typedef enum
@@ -89,6 +99,8 @@ typedef struct _DJI_Motor_t {
 
   DJI_Motor_Measure_t measure; // 电机原始接收数据
   DJI_Motor_ProcessedMeasure_t processed_measure; // 电机处理后接收数据
+
+  uint8_t first_rx_flg; // 是否第一次接收到数据, 初始为1, 接收到数据后置为0, 用于累计编码滤除第一次的值
 
   int16_t set_cmd; // 电机设定控制量编码值: 电流(-16384 ~ 16384) / 电压(-25000 ~ 25000, 6020电压控制模式)
 

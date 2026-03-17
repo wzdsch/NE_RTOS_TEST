@@ -7,7 +7,7 @@
  * @Author: Jiang Tianhang 1919524828@qq.com
  * @Date: 2025-12-29 10:35:45
  * @LastEditors: Jiang Tianhang 1919524828@qq.com
- * @LastEditTime: 2026-03-14 21:04:47
+ * @LastEditTime: 2026-03-15 20:55:43
  * @FilePath: \NE_RTOS_TEST\Components\moudle\arm.c
  * @Description: 
  */
@@ -67,33 +67,33 @@ void Arm_Init(Arm_t *p_arm, ArmInit_t* p_init) {
   p_arm->end_pitch_min_rad = p_init->end_pitch_min_rad;
 
   DM_Motor_Init(&p_arm->yaw1_8009p, &p_init->yaw1_8009p_init);
-  DM_Motor_MIT_SetPD(&p_arm->yaw1_8009p, 20.f, 0.5f);
-  MotorCtrl_Init(&p_arm->yaw1_ctrl, MOTOR_CTRL_PID_NONE, MOTOR_CTRL_OUT_FEEDFWD, 0.0f, &p_arm->yaw1_8009p);
+  DM_Motor_MIT_SetPD(&p_arm->yaw1_8009p, p_init->yaw1_mit_kp, p_init->yaw1_mit_kd);
+  MotorCtrl_Init(&p_arm->yaw1_ctrl, MOTOR_CTRL_PID_NONE, MOTOR_CTRL_OUT_FEEDFWD, p_init->yaw1_ctrl_max_out, &p_arm->yaw1_8009p);
   MotorCtrl_SetFeedForward(&p_arm->yaw1_ctrl, _Arm_Yaw1_GravertyFeedFwd);
 
   DM_Motor_Init(&p_arm->pitch1_8009p, &p_init->pitch1_8009p_init);
-  DM_Motor_MIT_SetPD(&p_arm->pitch1_8009p, 20.f, 0.5f);
-  MotorCtrl_Init(&p_arm->pitch1_ctrl, MOTOR_CTRL_PID_NONE, MOTOR_CTRL_OUT_FEEDFWD, 0.0f, &p_arm->pitch1_8009p);
+  DM_Motor_MIT_SetPD(&p_arm->pitch1_8009p, p_init->pitch1_mit_kp, p_init->pitch1_mit_kd);
+  MotorCtrl_Init(&p_arm->pitch1_ctrl, MOTOR_CTRL_PID_NONE, MOTOR_CTRL_OUT_FEEDFWD, p_init->pitch1_ctrl_max_out, &p_arm->pitch1_8009p);
   MotorCtrl_SetFeedForward(&p_arm->pitch1_ctrl, _Arm_Pitch1_GravertyFeedFwd);
 
   DJI_Motor_Init(&p_arm->pitch2_3508, &p_init->pitch2_3508_init);
-  MotorCtrl_Init(&p_arm->pitch2_ctrl, MOTOR_CTRL_PID_DOUBLE, MOTOR_CTRL_OUT_PID | MOTOR_CTRL_OUT_FEEDFWD, 16384.0f, &p_arm->pitch2_3508);
+  MotorCtrl_Init(&p_arm->pitch2_ctrl, MOTOR_CTRL_PID_DOUBLE, MOTOR_CTRL_OUT_PID | MOTOR_CTRL_OUT_FEEDFWD, p_init->pitch2_ctrl_max_out, &p_arm->pitch2_3508);
   MotorCtrl_ExternalPid_Init(&p_arm->pitch2_ctrl, &JY_ME01.processed_angle, &p_init->pid_pitch2_ext);
   MotorCtrl_InternalPid_Init(&p_arm->pitch2_ctrl, &p_arm->pitch2_3508.processed_measure.spd_rpm_f, &p_init->pid_pitch2_int);
   MotorCtrl_SetFeedForward(&p_arm->pitch2_ctrl, _Arm_Pitch2_GravertyFeedFwd);
   
   DM_Motor_Init(&p_arm->yaw2_4310, &p_init->yaw2_4310_init);
-  DM_Motor_MIT_SetPD(&p_arm->yaw2_4310, 1.f, 0.1f);
-  MotorCtrl_Init(&p_arm->yaw2_ctrl, MOTOR_CTRL_PID_NONE, MOTOR_CTRL_OUT_FEEDFWD, 0.0f, &p_arm->yaw2_4310);
+  DM_Motor_MIT_SetPD(&p_arm->yaw2_4310, p_init->yaw2_mit_kp, p_init->yaw2_mit_kd);
+  MotorCtrl_Init(&p_arm->yaw2_ctrl, MOTOR_CTRL_PID_NONE, MOTOR_CTRL_OUT_FEEDFWD, p_init->yaw2_ctrl_max_out, &p_arm->yaw2_4310);
   MotorCtrl_SetFeedForward(&p_arm->yaw2_ctrl, _Arm_Yaw2_GravertyFeedFwd);
 
   DJI_Motor_Init(&p_arm->end1_2006, &p_init->end1_2006_init);
-  MotorCtrl_Init(&p_arm->end1_ctrl, MOTOR_CTRL_PID_DOUBLE, MOTOR_CTRL_OUT_PID, 16384.0f, &p_arm->end1_2006);
+  MotorCtrl_Init(&p_arm->end1_ctrl, MOTOR_CTRL_PID_DOUBLE, MOTOR_CTRL_OUT_PID, p_init->end1_ctrl_max_out, &p_arm->end1_2006);
   MotorCtrl_ExternalPid_Init(&p_arm->end1_ctrl, &p_arm->end1_2006.processed_measure.pos_total_ecd_f, &p_init->pid_end1_ext);
   MotorCtrl_InternalPid_Init(&p_arm->end1_ctrl, &p_arm->end1_2006.processed_measure.spd_rpm_f, &p_init->pid_end1_int);
 
   DJI_Motor_Init(&p_arm->end2_2006, &p_init->end2_2006_init);
-  MotorCtrl_Init(&p_arm->end2_ctrl, MOTOR_CTRL_PID_DOUBLE, MOTOR_CTRL_OUT_PID, 16384.0f, &p_arm->end2_2006);
+  MotorCtrl_Init(&p_arm->end2_ctrl, MOTOR_CTRL_PID_DOUBLE, MOTOR_CTRL_OUT_PID, p_init->end2_ctrl_max_out, &p_arm->end2_2006);
   MotorCtrl_ExternalPid_Init(&p_arm->end2_ctrl, &p_arm->end2_2006.processed_measure.pos_total_ecd_f, &p_init->pid_end2_ext);
   MotorCtrl_InternalPid_Init(&p_arm->end2_ctrl, &p_arm->end2_2006.processed_measure.spd_rpm_f, &p_init->pid_end2_int);
 }
@@ -196,36 +196,46 @@ void Arm_Calc(Arm_t *p_arm) {
 
 float tau5 = 0.01f;
 float tau4 = 0.01f;
-float tau3 = 0.01f;
+float tau3 = 3200.f; // 3500
 float tau34_min = 0.01f;
 float tau34_max = 0.02f;
-float tau2 = 0.01f;
+float tau2 = 5.f;
 
 float _Arm_Yaw1_GravertyFeedFwd(MotorCtrl_t *p_ctrl) {
   return 0;
 }
 
 float _Arm_Pitch1_GravertyFeedFwd(MotorCtrl_t *p_ctrl) {
-  return 0;
+  Arm_t* p_arm = (Arm_t *)(((DM_Motor_t *)(p_ctrl->p_owner_moudle))->p_owner_moudle);
+  return tau2 * arm_cos_f32(p_arm->pitch1_8009p.processed_measure.pos_rad) - p_arm->pitch2_ctrl.feed_forward_out * K_M3508_CRT_CMD_TO_TOR_NM;
 }
 
 float _Arm_Pitch2_GravertyFeedFwd(MotorCtrl_t *p_ctrl) {
-  return 0;
+  Arm_t* p_arm = (Arm_t *)(((DJI_Motor_t *)(p_ctrl->p_owner_moudle))->p_owner_moudle);
+  return tau3 * arm_cos_f32(p_arm->pitch1_8009p.processed_measure.pos_rad + \
+                            (JY_ME01.processed_angle - 180.f) * K_DEG_TO_RAD);
 }
 
 float _Arm_Yaw2_GravertyFeedFwd(MotorCtrl_t *p_ctrl) {
+  // Arm_t* p_arm = (Arm_t *)(((DM_Motor_t *)(p_ctrl->p_owner_moudle))->p_owner_moudle);
+  // return tau4 * arm_sin_f32()
   return 0;
 }
 
 float _Arm_End1_GravertyFeedFwd(MotorCtrl_t *p_ctrl) {
+  // Arm_t* p_arm = (Arm_t *)(((DJI_Motor_t *)(p_ctrl->p_owner_moudle))->p_owner_moudle);
+  // return -tau5 * arm_cos_f32(p_arm->pitch1_8009p.processed_measure.pos_rad + \
+  //                           JY_ME01.processed_angle * K_DEG_TO_RAD + \
+  //                           p_arm->real_end_pitch_rad * cos(p_arm->yaw1_8009p.processed_measure.pos_rad));
   return 0;
 }
 
 float _Arm_End2_GravertyFeedFwd(MotorCtrl_t *p_ctrl) {
-  Arm_t* p_arm = (Arm_t *)(((DJI_Motor_t *)(p_ctrl->p_owner_moudle))->p_owner_moudle);
-  return tau5 * arm_cos_f32(p_arm->pitch1_8009p.processed_measure.pos_rad + \
-                            JY_ME01.processed_angle * K_DEG_TO_RAD + \
-                            p_arm->real_end_pitch_rad * cos(p_arm->yaw1_8009p.processed_measure.pos_rad));
+  // Arm_t* p_arm = (Arm_t *)(((DJI_Motor_t *)(p_ctrl->p_owner_moudle))->p_owner_moudle);
+  // return tau5 * arm_cos_f32(p_arm->pitch1_8009p.processed_measure.pos_rad + \
+  //                           JY_ME01.processed_angle * K_DEG_TO_RAD + \
+  //                           p_arm->real_end_pitch_rad * cos(p_arm->yaw1_8009p.processed_measure.pos_rad));
+  return 0;
 }
 
 void _Arm_End_Motor_Callback(DJI_Motor_t *p_motor) {

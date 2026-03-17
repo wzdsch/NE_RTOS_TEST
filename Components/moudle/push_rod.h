@@ -15,9 +15,6 @@
 #include "DJI_Motor.h"
 #include "MotorCtrl.h"
 
-#define PUSH_ROD_MAX_ECD 212992
-#define PUSH_ROD_MIN_ECD 0
-
 /// @brief 推杆机构状态枚举
 typedef enum
 {
@@ -44,6 +41,9 @@ typedef struct _PushRod_t
 
   int32_t err_total_ecd;                  // 两个电机累计编码差
   Pid_t err_pid;                          // 两个电机累计编码差的修正
+
+  int32_t max_ecd;                        // 推杆最大行程限制 (累计编码)
+  int32_t min_ecd;                        // 推杆最小行程限制 (累计编码)
 } PushRod_t;
 
 typedef struct {
@@ -58,6 +58,8 @@ typedef struct {
   float motor2_max_out;
   int16_t calib_current;
   uint32_t calib_target_count;
+  int32_t max_ecd;
+  int32_t min_ecd;
 } PushRod_Init_t;
 
 void PushRod_Init(PushRod_t *p_push_rod, PushRod_Init_t* p_init);

@@ -43,28 +43,28 @@ void PushRodTask(void *argument)
       // 电机1位置环
       .motor1_pos_params = {
         .mode = PID_POSITION,
-        .kp = 1.f, .ki = 0.00f, .kd = 0.f, // 典型位置环参数，需微调
+        .kp = 0.7f, .ki = 0.00f, .kd = 0.f, // 典型位置环参数，需微调
         .out_limit = 8000.0f,    // 速度环的目标限幅
         .i_out_limit = 2000.0f
       },
       // 电机1速度环
       .motor1_spd_params = {
         .mode = PID_POSITION,
-        .kp = 3.f, .ki = 0.00f, .kd = 0.0f, // 典型 M3508 速度环参数
+        .kp = 5.f, .ki = 0.1f, .kd = 0.0f, // 典型 M3508 速度环参数
         .out_limit = 16384.f,   // 电流最大值 (M3508: 16384)
         .i_out_limit = 15000.0f
       },
       // 电机2位置环
       .motor2_pos_params = {
         .mode = PID_POSITION,
-        .kp = 1.f, .ki = 0.0f, .kd = 0.0f,
+        .kp = 0.7f, .ki = 0.0f, .kd = 0.0f,
         .out_limit = 8000.0f,
         .i_out_limit = 2000.0f
       },
       // 电机2速度环
       .motor2_spd_params = {
         .mode = PID_POSITION,
-        .kp = 3.f, .ki = 0.00f, .kd = 0.0f,
+        .kp = 5.f, .ki = 0.1f, .kd = 0.0f,
         .out_limit = 16384.0f,
         .i_out_limit = 15000.0f
       },
@@ -80,6 +80,10 @@ void PushRodTask(void *argument)
       .motor2_max_out = 16384.0f,
       .calib_current = -2000,     // 校准电流
       .calib_target_count = 1000, // 校准累计计数
+
+      // 推杆行程限制
+      .max_ecd = 100000,
+      .min_ecd = 0,
     };
     PushRod_Init(&push_rod_f, &push_rod_f_init);
     PushRod_Enable(&push_rod_f);
@@ -111,28 +115,28 @@ void PushRodTask(void *argument)
       // 电机1位置环
       .motor1_pos_params = {
         .mode = PID_POSITION,
-        .kp = 1.f, .ki = 0.00f, .kd = 0.f, // 典型位置环参数，需微调
+        .kp = 0.7f, .ki = 0.0f, .kd = 0.f, // 典型位置环参数，需微调
         .out_limit = 8000.0f,    // 速度环的目标限幅
         .i_out_limit = 2000.0f
       },
       // 电机1速度环
       .motor1_spd_params = {
         .mode = PID_POSITION,
-        .kp = 3.f, .ki = 0.00f, .kd = 0.0f, // 典型 M3508 速度环参数
+        .kp = 5.f, .ki = 0.1f, .kd = 0.0f, // 典型 M3508 速度环参数
         .out_limit = 16384.f,   // 电流最大值 (M3508: 16384)
         .i_out_limit = 15000.0f
       },
       // 电机2位置环
       .motor2_pos_params = {
         .mode = PID_POSITION,
-        .kp = 1.f, .ki = 0.0f, .kd = 0.0f,
+        .kp = 0.7f, .ki = 0.0f, .kd = 0.0f,
         .out_limit = 8000.0f,
         .i_out_limit = 2000.0f
       },
       // 电机2速度环
       .motor2_spd_params = {
         .mode = PID_POSITION,
-        .kp = 3.f, .ki = 0.00f, .kd = 0.0f,
+        .kp = 5.f, .ki = 0.1f, .kd = 0.0f,
         .out_limit = 16384.0f,
         .i_out_limit = 15000.0f
       },
@@ -146,6 +150,10 @@ void PushRodTask(void *argument)
       .motor2_max_out = 16384.0f,
       .calib_current = -2000,     // 校准电流
       .calib_target_count = 1000, // 校准累计计数
+
+      // 推杆行程限制
+      .max_ecd = 200000,
+      .min_ecd = 0,
     };
     PushRod_Init(&push_rod_b, &push_rod_b_init);
     PushRod_Enable(&push_rod_b);

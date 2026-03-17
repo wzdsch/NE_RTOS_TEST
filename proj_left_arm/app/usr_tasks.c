@@ -27,9 +27,11 @@ void ArmTask(void *argument)
         .huart = &huart1,
         .ID = 0x00,
         .dir = JY_ME01_DIR_REVERSE,
-        .zero_angle = 15.f,
-        .init_angle = 6.f
+        .zero_angle = 31.f,
+        .init_angle = 12.f
       },
+
+      // ------------- motor ----------------
       .yaw1_8009p_init = {
         .hcan = &hcan2,
         .id = 0x12,
@@ -42,6 +44,7 @@ void ArmTask(void *argument)
         .MotorRxCallback = NULL,
         .p_owner_moudle = &arm
       },
+
       .pitch1_8009p_init = {
         .hcan = &hcan2,
         .id = 0x11,
@@ -50,10 +53,11 @@ void ArmTask(void *argument)
         .VMAX = 45.f,
         .TMAX = 54.f,
         .dir = DM_MOTOR_DIR_NORMAL,
-        .zero_offset_rad = -1.56f,
+        .zero_offset_rad = -1.25f,
         .MotorRxCallback = NULL,
         .p_owner_moudle = &arm
       },
+
       .pitch2_3508_init = {
         .hcan = &hcan2,
         .tx_id = DJI_MOTOR_TX_200,
@@ -64,6 +68,7 @@ void ArmTask(void *argument)
         .MotorRxCallback = NULL,
         .p_owner_moudle = &arm
       },
+
       .yaw2_4310_init = {
         .hcan = &hcan2,
         .id = 0x13,
@@ -76,6 +81,7 @@ void ArmTask(void *argument)
         .MotorRxCallback = NULL,
         .p_owner_moudle = &arm
       },
+
       .end1_2006_init = {
         .hcan = &hcan2,
         .tx_id = DJI_MOTOR_TX_200,
@@ -86,6 +92,7 @@ void ArmTask(void *argument)
         .MotorRxCallback = NULL,
         .p_owner_moudle = &arm
       },
+
       .end2_2006_init = {
         .hcan = &hcan2,
         .tx_id = DJI_MOTOR_TX_200,
@@ -96,9 +103,23 @@ void ArmTask(void *argument)
         .MotorRxCallback = NULL,
         .p_owner_moudle = &arm
       },
+
+      // -------------------- param --------------------
+      .yaw1_mit_kp = 20.f,
+      .yaw1_mit_kd = 0.6f,
+      .yaw1_ctrl_max_out = 0.1f,
+
+      .pitch1_mit_kp = 20.f,
+      .pitch1_mit_kd = 0.6f,
+      .pitch1_ctrl_max_out = 6.f,
+
+      .yaw2_mit_kp = 2.f,
+      .yaw2_mit_kd = 0.1f,
+      .yaw2_ctrl_max_out = 0.1f,
+
       .pid_pitch2_ext = {
         .mode = PID_POSITION,
-        .kp = 166.f,
+        .kp = 180.f,
         .ki = 0.f,
         .kd = 0.01f,
         .out_limit = 3000.f,
@@ -106,12 +127,14 @@ void ArmTask(void *argument)
       },
       .pid_pitch2_int = {
         .mode = PID_POSITION,
-        .kp = 2.f,
+        .kp = 3.00f,
         .ki = 0.f,
         .kd = 0.0f,
-        .out_limit = 5000.f,
-        .i_out_limit = 1000.f
+        .out_limit = 10000.f,
+        .i_out_limit = 2000.f
       },
+      .pitch2_ctrl_max_out = 16384.f,
+
       .pid_end1_ext = {
         .mode = PID_POSITION,
         .kp = 0.03f,
@@ -122,12 +145,14 @@ void ArmTask(void *argument)
       },
       .pid_end1_int = {
         .mode = PID_POSITION,
-        .kp = 1.1f,
+        .kp = 1.f,
         .ki = 0.f,
         .kd = 0.f,
-        .out_limit = 16384.f,
+        .out_limit = 800.f,
         .i_out_limit = 1000.f
       },
+      .end1_ctrl_max_out = 16384.f,
+
       .pid_end2_ext = {
         .mode = PID_POSITION,
         .kp = 0.03f,
@@ -141,17 +166,20 @@ void ArmTask(void *argument)
         .kp = 1.f,
         .ki = 0.f,
         .kd = 0.f,
-        .out_limit = 16384.f,
+        .out_limit = 800.f,
         .i_out_limit = 1000.f
       },
-      .yaw1_min_rad = -0.76f,
-      .yaw1_max_rad = 2.5f,
+      .end2_ctrl_max_out = 16384.f,
+
+      // ------------------ limit -------------------------
+      .yaw1_min_rad = -2.f,
+      .yaw1_max_rad = 2.f,
       
       .pitch1_min_rad = -0.1f,
       .pitch1_max_rad = 3.23f,
 
-      .pitch2_min_deg = 12.f,
-      .pitch2_max_deg = 90.f,
+      .pitch2_min_deg = 26.f,
+      .pitch2_max_deg = 109.f,
 
       .yaw2_min_rad = -3.f,
       .yaw2_max_rad = 1.07f,
@@ -172,6 +200,17 @@ void ArmTask(void *argument)
     DM_Motor_MIT_Send(&arm.pitch1_8009p);
     DM_Motor_MIT_Send(&arm.yaw2_4310);
     DJI_Motor_GroupTransmit(&hcan2, DJI_MOTOR_TX_200);
+    static uint8_t i = 0;
+    i++;
+    i %= 2;
+    if (i) {
+      JustFloat(arm.yaw1_8009p.processed_measure.pos_rad, arm.pitch1_8009p.processed_measure.pos_rad, \
+                JY_ME01.processed_angle, arm.yaw2_4310.processed_measure.pos_rad, &huart6);
+    }
+    else {
+      JustFloat(arm.real_end_pitch_rad, arm.pitch1_8009p.processed_measure.pos_rad, \
+                JY_ME01.processed_angle, arm.yaw2_4310.processed_measure.pos_rad, &huart6);
+    }
     osDelayUntil(start_tick + 2);
   }
 }
@@ -227,10 +266,10 @@ void CanCustomCommTask(void *argument) {
   while(1)
   {
     uint32_t start_tick = osKernelGetTickCount();
-    CAN_CustomComm_Tx_PackSend(&comm_arm2_ctrl);
+    // CAN_CustomComm_Tx_PackSend(&comm_arm2_ctrl);
     CAN_CustomComm_Tx_PackSend(&comm_chassis_ctrl);
     CAN_CustomComm_Tx_PackSend(&comm_push_rods_ctrl);
-    osDelayUntil(start_tick + 10);
+    osDelayUntil(start_tick + 3);
   }
 }
 

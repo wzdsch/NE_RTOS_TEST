@@ -2,7 +2,7 @@
  * @Author: Jiang Tianhang 1919524828@qq.com
  * @Date: 2026-03-12 16:44:09
  * @LastEditors: Jiang Tianhang 1919524828@qq.com
- * @LastEditTime: 2026-03-14 21:38:22
+ * @LastEditTime: 2026-03-17 19:04:29
  * @FilePath: \proj_left_arm\app\robot_ctrl_logic.c
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
@@ -21,7 +21,7 @@ extern CAN_Custom_PushRodsCtrlData_t push_rods_ctrl_data;
 
 extern ArmTarget_t arm2_fdb_target;
 
-float yaw1_step = 0.000005f, pitch1_step = 0.000005f, pitch2_step = 0.0002f, yaw2_step = 0.000005f, \
+float yaw1_step = 0.000005f, pitch1_step = 0.000005f, pitch2_step = 0.000005f * K_RAD_TO_DEG, yaw2_step = 0.000005f, \
       end_pitch_step = 0.000005f, end_yaw_step = 0.000005f;
 
 /// @brief 处理FS-i6遥杆死区
@@ -98,32 +98,18 @@ void CtrlLogic_RC() {
     arm2_ctrl_data.end_pitch_tar_rad = arm2_fdb_target.end_pitch_rad;
   }
   else if (fsi6_data.swa == FSI6_CHANNEL_MAX) {
-    // swa拨至下册控制机械臂
-    if (fsi6_data.swb == FSI6_CHANNEL_MIN) {
-      // swb拨至上侧控制左机械臂
-      if (fsi6_data.swd == FSI6_CHANNEL_MIN) {
-        arm1_ctrl_data.yaw1_tar_rad = arm.target.yaw1_rad + (RC_Joy_Process(fsi6_data.left_x, RC_JOY_DEADBAND) - FSI6_CHANNEL_MID) * yaw1_step;
-        arm1_ctrl_data.pitch1_tar_rad = arm.target.pitch1_rad + (RC_Joy_Process(fsi6_data.left_y, RC_JOY_DEADBAND) - FSI6_CHANNEL_MID) * pitch1_step;
-        arm1_ctrl_data.pitch2_tar_deg = arm.target.pitch2_deg + (RC_Joy_Process(fsi6_data.right_y, RC_JOY_DEADBAND) - FSI6_CHANNEL_MID) * pitch2_step;
-        arm1_ctrl_data.yaw2_tar_rad = arm.target.yaw2_rad - (RC_Joy_Process(fsi6_data.right_x, RC_JOY_DEADBAND) - FSI6_CHANNEL_MID) * yaw2_step;
-      }
-      else if (fsi6_data.swd == FSI6_CHANNEL_MAX) {
-        arm1_ctrl_data.end_pitch_tar_rad = arm.target.end_pitch_rad + (RC_Joy_Process(fsi6_data.right_y, RC_JOY_DEADBAND) - FSI6_CHANNEL_MID) * end_pitch_step;
-        arm1_ctrl_data.end_yaw_tar_rad = arm.target.end_yaw_rad + (RC_Joy_Process(fsi6_data.right_x, RC_JOY_DEADBAND) - FSI6_CHANNEL_MID) * end_yaw_step;
-      }
+    if (fsi6_data.swd == FSI6_CHANNEL_MIN) {
+      arm1_ctrl_data.yaw1_tar_rad = arm.target.yaw1_rad + (RC_Joy_Process(fsi6_data.left_x, RC_JOY_DEADBAND) - FSI6_CHANNEL_MID) * yaw1_step;
+      arm1_ctrl_data.pitch1_tar_rad = arm.target.pitch1_rad + (RC_Joy_Process(fsi6_data.left_y, RC_JOY_DEADBAND) - FSI6_CHANNEL_MID) * pitch1_step;
+      arm1_ctrl_data.pitch2_tar_deg = arm.target.pitch2_deg + (RC_Joy_Process(fsi6_data.right_y, RC_JOY_DEADBAND) - FSI6_CHANNEL_MID) * pitch2_step;
+      arm1_ctrl_data.yaw2_tar_rad = arm.target.yaw2_rad - (RC_Joy_Process(fsi6_data.right_x, RC_JOY_DEADBAND) - FSI6_CHANNEL_MID) * yaw2_step;
     }
-    else if (fsi6_data.swb == FSI6_CHANNEL_MAX) {
-      // swb拨至下侧控制右机械臂
-      if (fsi6_data.swd == FSI6_CHANNEL_MIN) {
-        arm2_ctrl_data.yaw1_tar_rad = arm2_fdb_target.yaw1_rad + (RC_Joy_Process(fsi6_data.left_x, RC_JOY_DEADBAND) - FSI6_CHANNEL_MID) * yaw1_step;
-        arm2_ctrl_data.pitch1_tar_rad = arm2_fdb_target.pitch1_rad + (RC_Joy_Process(fsi6_data.left_y, RC_JOY_DEADBAND) - FSI6_CHANNEL_MID) * pitch1_step;
-        arm2_ctrl_data.pitch2_tar_deg = arm2_fdb_target.pitch2_deg + (RC_Joy_Process(fsi6_data.right_y, RC_JOY_DEADBAND) - FSI6_CHANNEL_MID) * pitch2_step;
-        arm2_ctrl_data.yaw2_tar_rad = arm2_fdb_target.yaw2_rad - (RC_Joy_Process(fsi6_data.right_x, RC_JOY_DEADBAND) - FSI6_CHANNEL_MID) * yaw2_step;
-      }
-      else if (fsi6_data.swd == FSI6_CHANNEL_MAX) {
-        arm2_ctrl_data.end_pitch_tar_rad = arm2_fdb_target.end_pitch_rad + (RC_Joy_Process(fsi6_data.right_y, RC_JOY_DEADBAND) - FSI6_CHANNEL_MID) * end_pitch_step;
-        arm2_ctrl_data.end_yaw_tar_rad = arm2_fdb_target.end_yaw_rad + (RC_Joy_Process(fsi6_data.right_x, RC_JOY_DEADBAND) - FSI6_CHANNEL_MID) * end_yaw_step;
-      }
+    else if (fsi6_data.swd == FSI6_CHANNEL_MAX) {
+      arm1_ctrl_data.end_pitch_tar_rad = arm.target.end_pitch_rad + (RC_Joy_Process(fsi6_data.right_y, RC_JOY_DEADBAND) - FSI6_CHANNEL_MID) * end_pitch_step;
+      arm1_ctrl_data.end_yaw_tar_rad = arm.target.end_yaw_rad + (RC_Joy_Process(fsi6_data.right_x, RC_JOY_DEADBAND) - FSI6_CHANNEL_MID) * end_yaw_step;
+    }
+    if (fsi6_data.swb == FSI6_CHANNEL_MAX) {
+      arm1_ctrl_data.end_pitch_tar_rad = arm.target.end_pitch_rad - 0.005f;
     }
     // 控制机械臂时，底盘target清零
     chassis_ctrl_data.spd_x = 0;

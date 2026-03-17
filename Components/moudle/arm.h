@@ -7,7 +7,7 @@
  * @Author: Jiang Tianhang 1919524828@qq.com
  * @Date: 2025-12-29 10:35:45
  * @LastEditors: Jiang Tianhang 1919524828@qq.com
- * @LastEditTime: 2026-03-12 20:47:05
+ * @LastEditTime: 2026-03-15 15:48:14
  * @FilePath: \NE_RTOS_TEST\Components\moudle\arm.h
  * @Description: 
  */
@@ -32,7 +32,6 @@ typedef enum
 
 typedef struct {
   JY_ME01_Init_t JY_ME01;
-
   DM_Motor_Init_t yaw1_8009p_init;
   DM_Motor_Init_t pitch1_8009p_init;
   DJI_Motor_Init_t pitch2_3508_init;
@@ -40,13 +39,30 @@ typedef struct {
   DJI_Motor_Init_t end1_2006_init; // 末端执行器1
   DJI_Motor_Init_t end2_2006_init; // 末端执行器2
 
+  float yaw1_mit_kp;
+  float yaw1_mit_kd;
+  float yaw1_ctrl_max_out;
+
+  float pitch1_mit_kp;
+  float pitch1_mit_kd;
+  float pitch1_ctrl_max_out;
+
+  float yaw2_mit_kp;
+  float yaw2_mit_kd;
+  float yaw2_ctrl_max_out;
+
   PID_Init_t pid_pitch2_ext; // pitch2外环PID参数
   PID_Init_t pid_pitch2_int; // pitch2内环PID参数
+  float pitch2_ctrl_max_out;
+
   PID_Init_t pid_end1_ext; // end1外环PID参数
   PID_Init_t pid_end1_int; // end1内环PID参数
+  float end1_ctrl_max_out;
+
   PID_Init_t pid_end2_ext; // end2外环PID参数
   PID_Init_t pid_end2_int; // end2内环PID参数
-  
+  float end2_ctrl_max_out;
+
   // 限幅
   float yaw1_min_rad;
   float yaw1_max_rad;
@@ -62,6 +78,7 @@ typedef struct {
 
   float end_pitch_min_rad;
   float end_pitch_max_rad;
+
 } ArmInit_t;
 
 typedef struct {

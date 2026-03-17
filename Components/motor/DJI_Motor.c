@@ -7,7 +7,7 @@
  * @Author: Jiang Tianhang 1919524828@qq.com
  * @Date: 2025-10-29 12:11:38
  * @LastEditors: Jiang Tianhang 1919524828@qq.com
- * @LastEditTime: 2026-03-13 21:10:25
+ * @LastEditTime: 2026-03-18 01:14:13
  * @FilePath: \NE_RTOS_TEST\Components\motor\DJI_Motor.c
  * @Description: 
  */
@@ -16,16 +16,6 @@
 
 #include "cmsis_os.h"
 extern osMessageQueueId_t canTxMsgQueueHandle;
-
-#define DJI_MMOTOR_MAX_I_CMD 16384 // 大疆电机电流编码控制最大值
-#define DJI_MMOTOR_MAX_U_CMD 25000 // 大疆电机电压编码控制最大值 (6020电压控制模式)
-
-#define DJI_MOTOR_ECD_CMD_ROUND 8192      // 大疆电机一圈编码值
-#define DJI_MOTOR_ECD_CMD_HALF_ROUND 4096 // 大疆电机半圈编码值
-
-#define K_M3508_CRT_CMD_TO_CRT_A 0.001220703125f                        // (20 / 16384)
-#define K_M3508_CRT_CMD_TO_TOR_NM 1.9070299446532999164578111946533e-5f // (20 / 16384) * 0.3 * 187 / 3591
-#define K_M3508_CRT_NM_TO_CRT_CMD 52437.56149732620320855614973262f     // 1 / K_M3508_CRT_CMD_TO_TOR_NM
 
 typedef struct
 {
@@ -198,6 +188,7 @@ void DJI_Motor_Init(DJI_Motor_t *const p_motor, const DJI_Motor_Init_t *const in
   p_motor->dir = init->dir;
   p_motor->zero_offset = init->zero_offset;
   p_motor->MotorRxCallback = init->MotorRxCallback;
+  p_motor->first_rx_flg = 1;
 
   p_motor->p_owner_moudle = init->p_owner_moudle;
 
@@ -356,8 +347,12 @@ void DJI_Motor_GroupTransmit(CAN_HandleTypeDef *p_hcan, DJI_Motor_TxID_e tx_id)
 
 /// @brief 大疆电机计算累计编码值, 仅模块内使用
 /// @param p_motor 电机结构体指针
-inline void _DJI_Motor_TotalEcdCalc(DJI_Motor_t *const p_motor)
+static inline void _DJI_Motor_TotalEcdCalc(DJI_Motor_t *const p_motor)
 {
+  if (p_motor->first_rx_flg) {
+    p_motor->first_rx_flg = 0;
+    p_motor->processed_measure.pos_last_ecd = p_motor->processed_measure.pos_ecd;
+  }
   int16_t delta_ecd = p_motor->processed_measure.pos_ecd - p_motor->processed_measure.pos_last_ecd;
 
   // 累计编码过零处理

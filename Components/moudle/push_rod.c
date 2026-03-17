@@ -55,6 +55,8 @@ void PushRod_Init(PushRod_t *p_push_rod, PushRod_Init_t *p_init)
   p_push_rod->calib_current = p_init->calib_current;
   p_push_rod->calib_target_count = p_init->calib_target_count;
   p_push_rod->calib_count = 0;
+  p_push_rod->max_ecd = p_init->max_ecd;
+  p_push_rod->min_ecd = p_init->min_ecd;
 
   p_init->motor1_init.p_owner_moudle = p_push_rod;
   p_init->motor2_init.p_owner_moudle = p_push_rod;
@@ -111,11 +113,11 @@ void PushRod_SetTarget(PushRod_t *p_push_rod, float target_ecd)
     return;
   }
 
-  if (target_ecd > PUSH_ROD_MAX_ECD) {
-    target_ecd = PUSH_ROD_MAX_ECD;
+  if (target_ecd > p_push_rod->max_ecd) {
+    target_ecd = p_push_rod->max_ecd;
   }
-  else if (target_ecd < PUSH_ROD_MIN_ECD) {
-    target_ecd = PUSH_ROD_MIN_ECD;
+  else if (target_ecd < p_push_rod->min_ecd) {
+    target_ecd = p_push_rod->min_ecd;
   }
 
   float real_total_ecd = (p_push_rod->motor1.processed_measure.pos_total_ecd +\
