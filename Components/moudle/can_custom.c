@@ -7,11 +7,11 @@
  * @Author: Jiang Tianhang 1919524828@qq.com
  * @Date: 2026-01-05 21:29:25
  * @LastEditors: Jiang Tianhang 1919524828@qq.com
- * @LastEditTime: 2026-03-13 21:28:46
+ * @LastEditTime: 2026-03-25 12:14:24
  * @FilePath: \NE_RTOS_TEST\Components\moudle\can_custom_comm.c
  * @Description: 
  */
-#include "can_custom_comm.h"
+#include "can_custom.h"
 #include <string.h>
 #include <stdlib.h>
 
@@ -22,7 +22,7 @@ extern osMessageQueueId_t canTxMsgQueueHandle;
 
 // --------------------------------- TX ---------------------------------
 
-void CAN_CustomComm_Tx_Init(CAN_CustomComm_Tx_t* p_tx, CAN_CustomComm_Tx_Init_t* init) {
+void CAN_Custom_Tx_Init(CAN_Custom_Tx_t* p_tx, CAN_Custom_Tx_Init_t* init) {
   uint8_t err = 0;
   if (init == NULL || init->hcan == NULL || init->p_buf == NULL) {
     err++;
@@ -60,7 +60,7 @@ void CAN_CustomComm_Tx_Init(CAN_CustomComm_Tx_t* p_tx, CAN_CustomComm_Tx_Init_t*
   p_tx->pPackFunc = init->pPackFunc;
 }
 
-void CAN_CustomComm_Tx_PackSend(CAN_CustomComm_Tx_t* p_tx) {
+void CAN_Custom_Tx_PackSend(CAN_Custom_Tx_t* p_tx) {
   if (p_tx->pPackFunc != NULL) {
     p_tx->pPackFunc(p_tx->p_buf); // 打包
   }
@@ -83,9 +83,9 @@ void CAN_CustomComm_Tx_PackSend(CAN_CustomComm_Tx_t* p_tx) {
 
 // --------------------------------- RX ---------------------------------
 
-static void _CAN_CustomComm_RxCallback(BSP_CAN_RxInstance* p_rx_instance);
+static void _CAN_Custom_RxCallback(BSP_CAN_RxInstance* p_rx_instance);
 
-void CAN_CustomComm_Rx_Init(CAN_CustomComm_Rx_t* p_rx, CAN_CustomComm_Rx_Init_t* init) {
+void CAN_Custom_Rx_Init(CAN_Custom_Rx_t* p_rx, CAN_Custom_Rx_Init_t* init) {
   uint8_t err = 0;
   if (init == NULL || init->hcan == NULL || init->p_buf == NULL) {
     err++;
@@ -130,12 +130,12 @@ void CAN_CustomComm_Rx_Init(CAN_CustomComm_Rx_t* p_rx, CAN_CustomComm_Rx_Init_t*
 
   // 注册接收实例
   for (int i = 0; i < p_rx->pack_cnt; i++) {
-    BSP_CAN_RxRegister(&p_rx->p_rx_instances[i], init->hcan, init->start_rx_id + i, init->IDE, p_rx, _CAN_CustomComm_RxCallback);
+    BSP_CAN_RxRegister(&p_rx->p_rx_instances[i], init->hcan, init->start_rx_id + i, init->IDE, p_rx, _CAN_Custom_RxCallback);
   }
 }
 
-static void _CAN_CustomComm_RxCallback(BSP_CAN_RxInstance* p_rx_instance) {
-  CAN_CustomComm_Rx_t*p_custom_rx = (CAN_CustomComm_Rx_t*)(p_rx_instance->p_owner_moudle);
+static void _CAN_Custom_RxCallback(BSP_CAN_RxInstance* p_rx_instance) {
+  CAN_Custom_Rx_t*p_custom_rx = (CAN_Custom_Rx_t*)(p_rx_instance->p_owner_moudle);
 
   // 错误时丢弃读取到的数据, 等下一组新数据
   // 两种可能丢包/出错的情况:

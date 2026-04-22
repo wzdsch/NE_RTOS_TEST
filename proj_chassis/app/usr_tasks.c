@@ -7,13 +7,13 @@
 
 #include "DJI_Motor.h"
 #include "DM_Motor.h"
-#include "can_custom_comm.h"
 #include "moudle_logic.h"
 #include "push_rod.h"
 #include "vofa.h"
 #include "mecnum_chassis.h"
 #include "usr_freertos.h"
 #include "usr_main.h"
+#include "can_custom.h"
 
 void PushRodTask(void *argument)
 {
@@ -82,7 +82,7 @@ void PushRodTask(void *argument)
       .calib_target_count = 1000, // 校准累计计数
 
       // 推杆行程限制
-      .max_ecd = 100000,
+      .max_ecd = 212992,
       .min_ecd = 0,
     };
     PushRod_Init(&push_rod_f, &push_rod_f_init);
@@ -152,7 +152,7 @@ void PushRodTask(void *argument)
       .calib_target_count = 1000, // 校准累计计数
 
       // 推杆行程限制
-      .max_ecd = 200000,
+      .max_ecd = 210000,
       .min_ecd = 0,
     };
     PushRod_Init(&push_rod_b, &push_rod_b_init);
@@ -249,31 +249,35 @@ void ChassisTask(void* argument) {
 
 void CanCustomCommTask(void *argument) {
   {
-    CAN_CustomComm_Rx_Init_t comm_chassis_ctrl_init = {
-      .hcan = &hcan1,
-      .IDE = CAN_ID_STD,
-      .start_rx_id = CAN_CUSTOM_COMM_START_ID_CHASSIS_CTRL,
-      .p_buf = &chassis_ctrl_data,
-      .size = sizeof(chassis_ctrl_data),
-      .pUnpackFunc = NULL
+    CAN_Custom_Tx_Init_t comm_arm_l_ctrl_init = {
+        .hcan = &hcan1,
+        .start_tx_id = CAN_CUSTOM_COMM_START_ID_ARM_L_CTRL,
+        .IDE = CAN_ID_STD,
+        .p_buf = &arm_l_ctrl_data,
+        .size = sizeof(arm_l_ctrl_data),
+        .pPackFunc = NULL
     };
-    CAN_CustomComm_Rx_Init(&comm_chassis_ctrl, &comm_chassis_ctrl_init);
+    CAN_Custom_Tx_Init(&comm_arm_l_ctrl, &comm_arm_l_ctrl_init);
   }
-
-  {
-    CAN_CustomComm_Rx_Init_t comm_push_rods_ctrl_init = {
-      .hcan = &hcan1,
-      .IDE = CAN_ID_STD,
-      .start_rx_id = CAN_CUSTOM_COMM_START_ID_PUSH_RODS_CTRL,
-      .p_buf = &push_rods_ctrl_data,
-      .size = sizeof(push_rods_ctrl_data),
-      .pUnpackFunc = NULL
+  {  
+    CAN_Custom_Tx_Init_t comm_arm_r_ctrl_init = {
+        .hcan = &hcan1,
+        .start_tx_id = CAN_CUSTOM_COMM_START_ID_ARM_R_CTRL,
+        .IDE = CAN_ID_STD,
+        .p_buf = &arm_r_ctrl_data,
+        .size = sizeof(arm_r_ctrl_data),
+        .pPackFunc = NULL
     };
-    CAN_CustomComm_Rx_Init(&comm_push_rods_ctrl, &comm_push_rods_ctrl_init);
+    CAN_Custom_Tx_Init(&comm_arm_r_ctrl, &comm_arm_r_ctrl_init);
+  }
+  {
+    // CAN_Custom_Rx_Init_t 
   }
   while (1) {
     uint32_t strt_tick = osKernelGetTickCount();
-    osDelayUntil(strt_tick + 10);
+    CAN_Custom_Tx_PackSend(&comm_arm_l_ctrl);
+    CAN_Custom_Tx_PackSend(&comm_arm_r_ctrl);
+    osDelayUntil(strt_tick + 5);
   }
 }
 

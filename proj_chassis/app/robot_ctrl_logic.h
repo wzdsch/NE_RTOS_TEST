@@ -12,7 +12,7 @@
 #define K_RAD_TO_DEG 57.29577951308232f
 #define K_DEG_TO_RAD 0.017453292519943295769236907684886f
 
-#include "can_custom_comm.h"
+#include "can_custom.h"
 
 void CtrlLogic_RC(void);
 

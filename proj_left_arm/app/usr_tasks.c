@@ -9,15 +9,14 @@
 #include "DM_Motor.h"
 #include "arm.h"
 #include "remote_receive.h"
-#include "can_custom_comm.h"
 #include "JY_ME01.h"
 #include "moudle_logic.h"
 #include "push_rod.h"
 #include "vofa.h"
 #include "mecnum_chassis.h"
-#include "robot_ctrl_logic.h"
 #include "usr_main.h"
 #include "usr_freertos.h"
+#include "can_custom_protocol.h"
 
 void ArmTask(void *argument)
 {
@@ -105,13 +104,38 @@ void ArmTask(void *argument)
       },
 
       // -------------------- param --------------------
+      
+      .pid_yaw1_ext = {
+        .mode = PID_POSITION,
+        .kp = 1.f, .ki = 0.f, .kd = 0.f,
+        .out_limit = 2.f,
+        .i_out_limit = 1.f
+      },
+      .pid_yaw1_int = {
+        .mode = PID_POSITION,
+        .kp = 0.1f, .ki = 0.0f, .kd = 0.f,
+        .out_limit = 5.f,
+        .i_out_limit = 1.f
+      },
       .yaw1_mit_kp = 20.f,
       .yaw1_mit_kd = 0.6f,
-      .yaw1_ctrl_max_out = 0.1f,
+      .yaw1_ctrl_max_out = 10.f,
 
-      .pitch1_mit_kp = 20.f,
-      .pitch1_mit_kd = 0.6f,
-      .pitch1_ctrl_max_out = 6.f,
+      .pid_pitch1_ext = {
+        .mode = PID_POSITION,
+        .kp = 20.f, .ki = 0.f, .kd = 0.f,
+        .out_limit = 10.f,
+        .i_out_limit = 1.f
+      },
+      .pid_pitch1_int = {
+        .mode = PID_POSITION,
+        .kp = 0.6f, .ki = 0.f, .kd = 0.f,
+        .out_limit = 0.f,
+        .i_out_limit = 0.f
+      },
+      .pitch1_mit_kp = 50.f,
+      .pitch1_mit_kd = 1.0f,
+      .pitch1_ctrl_max_out = 10.f,
 
       .yaw2_mit_kp = 2.f,
       .yaw2_mit_kd = 0.1f,
@@ -179,13 +203,13 @@ void ArmTask(void *argument)
       .pitch1_max_rad = 3.23f,
 
       .pitch2_min_deg = 26.f,
-      .pitch2_max_deg = 109.f,
+      .pitch2_max_deg = 120.f,
 
       .yaw2_min_rad = -3.f,
-      .yaw2_max_rad = 1.07f,
+      .yaw2_max_rad = 1.1f,
 
-      .end_pitch_min_rad = -1.3f,
-      .end_pitch_max_rad = 1.3f
+      .end_pitch_min_rad = -1.4f,
+      .end_pitch_max_rad = 1.4f
     };
     Arm_Init(&arm, &arm_init);
   }
@@ -217,67 +241,31 @@ void ArmTask(void *argument)
 
 void CanCustomCommTask(void *argument) {
   {
-    CAN_CustomComm_Tx_Init_t comm_arm2_ctrl_init = {
+    CAN_Custom_Tx_Init_t comm_arm_l_fdb_init = {
       .hcan = &hcan1,
-      .start_tx_id = CAN_CUSTOM_COMM_START_ID_ARM_CTRL,
       .IDE = CAN_ID_STD,
-      .p_buf = &arm2_ctrl_data,
-      .size = sizeof(arm2_ctrl_data),
-      .pPackFunc = NULL
+      .start_tx_id = CAN_CUSTOM_COMM_START_ID_ARM_L_FDB_TARGET,
+      .p_buf = &arm_l_fdb_data,
+      .size = sizeof(arm_l_fdb_data),
+      .pPackFunc = CAN_Custom_ArmFdbTarget_Pack,
     };
-    CAN_CustomComm_Tx_Init(&comm_arm2_ctrl, &comm_arm2_ctrl_init);
+    CAN_Custom_Tx_Init(&comm_arm_l_fdb, &comm_arm_l_fdb_init);
   }
-
   {
-    CAN_CustomComm_Tx_Init_t comm_chassis_ctrl_init = {
-      .hcan = &hcan1,
-      .start_tx_id = CAN_CUSTOM_COMM_START_ID_CHASSIS_CTRL,
-      .IDE = CAN_ID_STD,
-      .p_buf = &chassis_ctrl_data,
-      .size = sizeof(chassis_ctrl_data),
-      .pPackFunc = NULL
-    };
-    CAN_CustomComm_Tx_Init(&comm_chassis_ctrl, &comm_chassis_ctrl_init);
-  }
-
-  {
-    CAN_CustomComm_Tx_Init_t comm_push_rods_ctrl_init = {
-      .hcan = &hcan1,
-      .start_tx_id = CAN_CUSTOM_COMM_START_ID_PUSH_RODS_CTRL,
-      .IDE = CAN_ID_STD,
-      .p_buf = &push_rods_ctrl_data,
-      .size = sizeof(push_rods_ctrl_data),
-      .pPackFunc = NULL
-    };
-    CAN_CustomComm_Tx_Init(&comm_push_rods_ctrl, &comm_push_rods_ctrl_init);
-  }
-
-  {
-    CAN_CustomComm_Rx_Init_t comm_arm2_fdb_init = {
+    CAN_Custom_Rx_Init_t comm_arm_l_ctrl_init = {
       .hcan = &hcan1,
       .IDE = CAN_ID_STD,
-      .start_rx_id = CAN_CUSTOM_COMM_START_ID_ARM_FDB_TARGET,
-      .p_buf = &arm2_fdb_target,
-      .size = sizeof(arm2_fdb_target),
-      .pUnpackFunc = NULL
+      .start_rx_id = CAN_CUSTOM_COMM_START_ID_ARM_L_CTRL,
+      .p_buf = &arm_l_ctrl_data,
+      .size = sizeof(arm_l_ctrl_data),
+      .pUnpackFunc = NULL,
     };
-    CAN_CustomComm_Rx_Init(&comm_arm2_fdb_target, &comm_arm2_fdb_init);
+    CAN_Custom_Rx_Init(&comm_arm_l_ctrl, &comm_arm_l_ctrl_init);
   }
   while(1)
   {
     uint32_t start_tick = osKernelGetTickCount();
-    // CAN_CustomComm_Tx_PackSend(&comm_arm2_ctrl);
-    CAN_CustomComm_Tx_PackSend(&comm_chassis_ctrl);
-    CAN_CustomComm_Tx_PackSend(&comm_push_rods_ctrl);
-    osDelayUntil(start_tick + 3);
-  }
-}
-
-void RobotCtrlTask(void *argument) {
-  while(1)
-  {
-    uint32_t start_tick = osKernelGetTickCount();
-    CtrlLogic_RC();
+    CAN_Custom_Tx_PackSend(&comm_arm_l_fdb);
     osDelayUntil(start_tick + 5);
   }
 }

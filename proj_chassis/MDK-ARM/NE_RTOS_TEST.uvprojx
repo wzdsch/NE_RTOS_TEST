@@ -849,6 +849,16 @@
           </Files>
         </Group>
         <Group>
+          <GroupName>RemoteCtrl</GroupName>
+          <Files>
+            <File>
+              <FileName>remote_receive.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\Components\remote_ctrl\remote_receive.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
           <GroupName>referee</GroupName>
           <Files>
             <File>
@@ -902,16 +912,6 @@
           <GroupName>Moudle</GroupName>
           <Files>
             <File>
-              <FileName>can_custom_comm.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\Components\moudle\can_custom_comm.c</FilePath>
-            </File>
-            <File>
-              <FileName>can_custom_comm_protocol.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\Components\moudle\can_custom_comm_protocol.c</FilePath>
-            </File>
-            <File>
               <FileName>mecnum_chassis.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\Components\moudle\mecnum_chassis.c</FilePath>
@@ -920,6 +920,11 @@
               <FileName>push_rod.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\Components\moudle\push_rod.c</FilePath>
+            </File>
+            <File>
+              <FileName>can_custom.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\Components\moudle\can_custom.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -945,6 +950,16 @@
               <FileName>usr_tasks.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\app\usr_tasks.c</FilePath>
+            </File>
+            <File>
+              <FileName>robot_ctrl_logic.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\app\robot_ctrl_logic.c</FilePath>
+            </File>
+            <File>
+              <FileName>can_custom_protocol.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\app\can_custom_protocol.c</FilePath>
             </File>
           </Files>
         </Group>

@@ -1,4 +1,12 @@
 /*
+ * @Author: Jiang Tianhang 1919524828@qq.com
+ * @Date: 2026-02-17 19:36:22
+ * @LastEditors: Jiang Tianhang 1919524828@qq.com
+ * @LastEditTime: 2026-04-07 20:44:48
+ * @FilePath: \proj_chassisd:\RoboMaster\code\Enginner\Components\moudle\push_rod.c
+ * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
+ */
+/*
  * @beforeAnnotation:
  * Copyright (c) 2026 by
  * """ The Robomaster team : NEXT-E from Xi'an University of Technology """

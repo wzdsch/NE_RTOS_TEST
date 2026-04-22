@@ -7,7 +7,7 @@
  * @Author: Jiang Tianhang 1919524828@qq.com
  * @Date: 2025-12-29 10:35:45
  * @LastEditors: Jiang Tianhang 1919524828@qq.com
- * @LastEditTime: 2026-03-15 20:55:43
+ * @LastEditTime: 2026-03-18 20:03:40
  * @FilePath: \NE_RTOS_TEST\Components\moudle\arm.c
  * @Description: 
  */
@@ -68,12 +68,16 @@ void Arm_Init(Arm_t *p_arm, ArmInit_t* p_init) {
 
   DM_Motor_Init(&p_arm->yaw1_8009p, &p_init->yaw1_8009p_init);
   DM_Motor_MIT_SetPD(&p_arm->yaw1_8009p, p_init->yaw1_mit_kp, p_init->yaw1_mit_kd);
-  MotorCtrl_Init(&p_arm->yaw1_ctrl, MOTOR_CTRL_PID_NONE, MOTOR_CTRL_OUT_FEEDFWD, p_init->yaw1_ctrl_max_out, &p_arm->yaw1_8009p);
+  MotorCtrl_Init(&p_arm->yaw1_ctrl, MOTOR_CTRL_PID_DOUBLE, MOTOR_CTRL_OUT_PID | MOTOR_CTRL_OUT_FEEDFWD, p_init->yaw1_ctrl_max_out, &p_arm->yaw1_8009p);
+  MotorCtrl_ExternalPid_Init(&p_arm->yaw1_ctrl, &p_arm->yaw1_8009p.processed_measure.pos_rad, &p_init->pid_yaw1_ext);
+  MotorCtrl_InternalPid_Init(&p_arm->yaw1_ctrl, &p_arm->yaw1_8009p.processed_measure.spd_radps, &p_init->pid_yaw1_int);
   MotorCtrl_SetFeedForward(&p_arm->yaw1_ctrl, _Arm_Yaw1_GravertyFeedFwd);
 
   DM_Motor_Init(&p_arm->pitch1_8009p, &p_init->pitch1_8009p_init);
   DM_Motor_MIT_SetPD(&p_arm->pitch1_8009p, p_init->pitch1_mit_kp, p_init->pitch1_mit_kd);
-  MotorCtrl_Init(&p_arm->pitch1_ctrl, MOTOR_CTRL_PID_NONE, MOTOR_CTRL_OUT_FEEDFWD, p_init->pitch1_ctrl_max_out, &p_arm->pitch1_8009p);
+  MotorCtrl_Init(&p_arm->pitch1_ctrl, MOTOR_CTRL_PID_DOUBLE, MOTOR_CTRL_OUT_PID, p_init->pitch1_ctrl_max_out, &p_arm->pitch1_8009p);
+  MotorCtrl_ExternalPid_Init(&p_arm->pitch1_ctrl, &p_arm->pitch1_8009p.processed_measure.pos_rad, &p_init->pid_pitch1_ext);
+  MotorCtrl_InternalPid_Init(&p_arm->pitch1_ctrl, &p_arm->pitch1_8009p.processed_measure.spd_radps, &p_init->pid_pitch1_int);
   MotorCtrl_SetFeedForward(&p_arm->pitch1_ctrl, _Arm_Pitch1_GravertyFeedFwd);
 
   DJI_Motor_Init(&p_arm->pitch2_3508, &p_init->pitch2_3508_init);

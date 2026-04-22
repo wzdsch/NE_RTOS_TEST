@@ -22,9 +22,6 @@
 #include "stm32f4xx_it.h"
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-// #include "bsp_wbus.h"
-#include "remote_receive.h"
-#include "referee.h"
 #include "JY_ME01.h"
 /* USER CODE END Includes */
 
@@ -239,8 +236,7 @@ void USART3_IRQHandler(void)
   /* USER CODE END USART3_IRQn 0 */
   HAL_UART_IRQHandler(&huart3);
   /* USER CODE BEGIN USART3_IRQn 1 */
-  // W_BUS_IDLEHandler();
-  FSI6_BUS_IDLEHandler();
+
   /* USER CODE END USART3_IRQn 1 */
 }
 
@@ -352,7 +348,7 @@ void USART6_IRQHandler(void)
   /* USER CODE END USART6_IRQn 0 */
   HAL_UART_IRQHandler(&huart6);
   /* USER CODE BEGIN USART6_IRQn 1 */
-  refereeReceiveHandler();
+
   /* USER CODE END USART6_IRQn 1 */
 }
 

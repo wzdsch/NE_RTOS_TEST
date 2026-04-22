@@ -10,7 +10,7 @@ typedef enum {
   CHASSIS_STATE_ENABLE
 } Chassis_State_e;
 
-typedef struct _ {
+typedef struct {
   // 底盘状态 默认失能
   Chassis_State_e state;
 

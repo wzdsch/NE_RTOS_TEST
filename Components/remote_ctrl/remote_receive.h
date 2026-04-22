@@ -7,7 +7,7 @@
  * @Author: Jiang Tianhang 1919524828@qq.com
  * @Date: 2026-01-07 11:36:00
  * @LastEditors: Jiang Tianhang 1919524828@qq.com
- * @LastEditTime: 2026-03-13 16:22:23
+ * @LastEditTime: 2026-03-21 14:45:11
  * @FilePath: \NE_RTOS_TEST\Components\remote_ctrl\remote_receive.h
  * @Description: This file is by Guo Hongting
  */
@@ -50,8 +50,8 @@ typedef struct {
 extern FSI6Data_t fsi6_data;                      // 拆包后的数据
 
 /* DMA和串口空闲中断初始化 */
-extern void FSI6_BUS_IDLEHandler_Init(void);
+void FSI6_BUS_IDLEHandler_Init(void);
 /* DMA和串口空闲中断启用 */
-extern void FSI6_BUS_IDLEHandler(void);
+void FSI6_BUS_IDLEHandler(void);
 
 #endif

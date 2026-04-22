@@ -2,22 +2,14 @@
  * @Author: Jiang Tianhang 1919524828@qq.com
  * @Date: 2026-02-22 19:49:50
  * @LastEditors: Jiang Tianhang 1919524828@qq.com
- * @LastEditTime: 2026-03-18 01:34:42
- * @FilePath: \proj_chassis\app\robot_logic.c
- * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
- */
-/*
- * @Author: Jiang Tianhang 1919524828@qq.com
- * @Date: 2026-02-22 19:49:50
- * @LastEditors: Jiang Tianhang 1919524828@qq.com
- * @LastEditTime: 2026-03-12 01:55:40
+ * @LastEditTime: 2026-04-07 20:52:37
  * @FilePath: \NE_RTOS_TEST\Components\app\robot_logic.c
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
 #include "moudle_logic.h"
 #include "push_rod.h"
 #include "mecnum_chassis.h"
-#include "can_custom_comm_protocol.h"
+#include "can_custom_structs.h"
 
 extern Chassis_t chassis;    // 底盘结构体
 extern PushRod_t push_rod_f; // 前推杆结构体

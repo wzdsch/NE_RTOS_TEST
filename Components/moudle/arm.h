@@ -7,7 +7,7 @@
  * @Author: Jiang Tianhang 1919524828@qq.com
  * @Date: 2025-12-29 10:35:45
  * @LastEditors: Jiang Tianhang 1919524828@qq.com
- * @LastEditTime: 2026-03-15 15:48:14
+ * @LastEditTime: 2026-03-18 19:34:25
  * @FilePath: \NE_RTOS_TEST\Components\moudle\arm.h
  * @Description: 
  */
@@ -50,6 +50,12 @@ typedef struct {
   float yaw2_mit_kp;
   float yaw2_mit_kd;
   float yaw2_ctrl_max_out;
+
+  PID_Init_t pid_yaw1_ext; // yaw1外环PID参数
+  PID_Init_t pid_yaw1_int; // yaw1内环PID参数
+
+  PID_Init_t pid_pitch1_ext; // pitch1外环PID参数
+  PID_Init_t pid_pitch1_int; // pitch1内环PID参数
 
   PID_Init_t pid_pitch2_ext; // pitch2外环PID参数
   PID_Init_t pid_pitch2_int; // pitch2内环PID参数

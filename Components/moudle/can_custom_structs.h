@@ -3,12 +3,12 @@
  * @Author: Jiang Tianhang 1919524828@qq.com
  * @Date: 2026-02-17 19:36:22
  * @LastEditors: Jiang Tianhang 1919524828@qq.com
- * @LastEditTime: 2026-03-13 16:54:53
+ * @LastEditTime: 2026-03-25 10:23:34
  * @FilePath: \proj_chassisd:\RoboMaster\code\Enginner\Components\moudle\can_custom_comm_protocol.h
  * @Description: CAN自定义通信模块，通信结构体及打包/解包函数
  */
-#ifndef CAN_CUSTOM_PROTOCOL_H
-#define CAN_CUSTOM_PROTOCOL_H
+#ifndef CAN_CUSTOM_STRUCTS_H
+#define CAN_CUSTOM_STRUCTS_H
 
 #include "arm.h"
 #include "mecnum_chassis.h"
@@ -30,7 +30,7 @@ typedef struct {
 /// 这个结构体就是另一个机械臂反馈的处理后的target
 /// 也相当于ArmTarget_t
 typedef struct {
-  float yaw_rad;
+  float yaw1_rad;
   float pitch1_rad;
   float pitch2_deg;
   float yaw2_rad;
